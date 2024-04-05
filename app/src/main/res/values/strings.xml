@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Adekunle_Ganiyat_S2110996</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <!-- Strings used for navigation -->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="title_activity_detailed_forecast">DetailedForecastActivity</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_settings">settings</string>
+    <string name="title_map">map</string>
+    <string name="title_search">search</string>
+    <string name="title_home">home</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="title_activity_map">MapActivity</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_recent_location">RecentLocation</string>
+    <!-- Strings used for locations suggestion -->
+    <string-array name="locations">
+        <item>Glasgow</item>
+        <item>London</item>
+        <item>New York</item>
+        <item>Oman</item>
+        <item>Mauritius</item>
+    </string-array>
+</resources>
