@@ -18,11 +18,7 @@
         android:theme="@style/Theme.Adekunle_Ganiyat_S2110996"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <activity
-            android:name=".data.models.RecentLocation"
-            android:exported="false"
-            android:label="@string/title_activity_recent_location"
-            android:theme="@style/Theme.Adekunle_Ganiyat_S2110996" />
+
         <activity
             android:name=".activities.SettingsActivity"
             android:exported="false"

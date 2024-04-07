@@ -47,4 +47,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation ("com.google.code.gson:gson:2.8.8")
     implementation ("com.google.android.gms:play-services-maps:17.0.0")
+    implementation ("com.google.maps.android:android-maps-utils:2.2.3")
+
 }
