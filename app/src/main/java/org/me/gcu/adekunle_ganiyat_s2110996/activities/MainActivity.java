@@ -2,8 +2,11 @@ package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private TextView locationTextView;
     private WeatherViewModel weatherViewModel;
     private ForecastAdapter forecastAdapter;
+    private ImageButton prevButton, nextButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         temperatureTextView = findViewById(R.id.temperature_text_view);
         locationTextView = findViewById(R.id.location_text_view);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+        prevButton = findViewById(R.id.prev_button);
+        nextButton = findViewById(R.id.next_button);
     }
 
     private void initViewModel() {
@@ -149,6 +155,40 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
 
         PagerSnapHelper pagerSnapHelper = new PagerSnapHelper();
         pagerSnapHelper.attachToRecyclerView(locationCarouselRecyclerView);
+
+        locationCarouselRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                updateButtonVisibility();
+            }
+        });
+
+        prevButton.setOnClickListener(v -> locationCarouselRecyclerView.smoothScrollBy(-locationCarouselRecyclerView.getWidth(), 0));
+        nextButton.setOnClickListener(v -> locationCarouselRecyclerView.smoothScrollBy(locationCarouselRecyclerView.getWidth(), 0));
+
+        // Set up auto-scroll functionality
+        final Handler handler = new Handler();
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                int currentPosition = locationCarouselRecyclerView.computeHorizontalScrollOffset();
+                int maxPosition = locationCarouselRecyclerView.computeHorizontalScrollRange() - locationCarouselRecyclerView.getWidth();
+                int nextPosition = (currentPosition + locationCarouselRecyclerView.getWidth()) % (maxPosition + locationCarouselRecyclerView.getWidth());
+                locationCarouselRecyclerView.smoothScrollBy(nextPosition - currentPosition, 0);
+                handler.postDelayed(this, 10000); // Adjust the delay as needed (3 seconds in this case)
+            }
+        };
+        handler.postDelayed(runnable, 10000);
+    }
+
+    private void updateButtonVisibility() {
+        LinearLayoutManager layoutManager = (LinearLayoutManager) locationRecyclerView.getLayoutManager();
+        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+        int lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition();
+
+        prevButton.setVisibility(firstVisibleItemPosition == 0 ? View.INVISIBLE : View.VISIBLE);
+        nextButton.setVisibility(lastVisibleItemPosition == locationRecyclerView.getAdapter().getItemCount() - 1 ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void onLocationClicked(Location location) {
