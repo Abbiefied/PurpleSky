@@ -1,26 +1,31 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
-import org.me.gcu.adekunle_ganiyat_s2110996.data.models.RecentLocation;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 
 import java.util.List;
 
 public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAdapter.RecentLocationViewHolder> {
-
-    private List<RecentLocation> recentLocations;
+    private List<Location> locations;
     private OnRecentLocationClickListener onRecentLocationClickListener;
+    private WeatherRepository weatherRepository;
 
-    public RecentLocationAdapter(List<RecentLocation> recentLocations, OnRecentLocationClickListener onRecentLocationClickListener) {
-        this.recentLocations = recentLocations;
+    public RecentLocationAdapter(List<Location> locations, OnRecentLocationClickListener onRecentLocationClickListener, WeatherRepository weatherRepository) {
+        this.locations = locations;
         this.onRecentLocationClickListener = onRecentLocationClickListener;
+        this.weatherRepository = weatherRepository;
     }
 
     @NonNull
@@ -31,49 +36,102 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecentLocationViewHolder holder, int position) {
-        RecentLocation recentLocation = recentLocations.get(position);
-        holder.bind(recentLocation);
+    public void onBindViewHolder(RecentLocationViewHolder holder, int position) {
+        if (locations != null && !locations.isEmpty()) {
+            Location location = locations.get(position);
+            holder.bind(location);
+            fetchCurrentWeather(location, holder);
+        } else {
+            // Handle the case when the recent locations list is empty
+            holder.bind(null);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return recentLocations.size();
+        return locations != null ? locations.size() : 0;
+    }
+
+    public void updateData(List<Location> newLocations) {
+        locations.clear();
+        locations.addAll(newLocations);
+        notifyDataSetChanged();
+    }
+
+    private void fetchCurrentWeather(Location location, RecentLocationViewHolder holder) {
+        String locationName = location.getName();
+        String locationId = location.getLocationIdByName(locationName);
+        AppExecutors.getInstance().networkIO().execute(() -> {
+            weatherRepository.fetchCurrentWeather(locationId, new WeatherRepository.WeatherCallback<CurrentWeather>() {
+                @Override
+                public void onSuccess(CurrentWeather currentWeather) {
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                            holder.temperatureTextView.setText(String.format("%.1f°C", currentWeather.getTemperature()));
+                            holder.humidityTextView.setText(currentWeather.getHumidity());
+                            int iconResId = WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature());
+                            holder.weatherIconImageView.setImageResource(iconResId);
+                    });
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    // Handle failure scenario
+                    Log.e("RecentLocationAdapter", "Error fetching current weather: " + errorMessage);
+                }
+            });
+        });
     }
 
     public class RecentLocationViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
         private TextView locationNameTextView;
-        private TextView weatherSummaryTextView;
-        private RecentLocation recentLocation;
+        private TextView temperatureTextView;
+        private TextView humidityTextView;
+        private ImageView weatherIconImageView;
+        private Location location;
 
         public RecentLocationViewHolder(@NonNull View itemView) {
             super(itemView);
             locationNameTextView = itemView.findViewById(R.id.location_name_text_view);
-            weatherSummaryTextView = itemView.findViewById(R.id.weather_summary_text_view);
+            temperatureTextView = itemView.findViewById(R.id.temperature_text_view);
+            humidityTextView = itemView.findViewById(R.id.humidity_text_view);
+            weatherIconImageView = itemView.findViewById(R.id.weather_icon_imageview);
             itemView.setOnClickListener(this);
         }
 
-        public void bind(RecentLocation recentLocation) {
-            this.recentLocation = recentLocation;
-            locationNameTextView.setText(recentLocation.getLocationName());
-            weatherSummaryTextView.setText(recentLocation.getWeatherSummary());
+        public void bind(Location location) {
+            if (location != null) {
+                this.location = location;
+                    locationNameTextView.setText(location.getName());
+                    temperatureTextView.setText("");
+                    humidityTextView.setText("");
+                    weatherIconImageView.setImageDrawable(null);
+
+            } else {
+                // Handle the case when the location is null
+                if (locationNameTextView != null) {
+                    locationNameTextView.setText("");
+                }
+                if (temperatureTextView != null) {
+                    temperatureTextView.setText("");
+                }
+                if (humidityTextView != null) {
+                    humidityTextView.setText("");
+                }
+                if (weatherIconImageView != null) {
+                    weatherIconImageView.setImageDrawable(null);
+                }
+            }
         }
 
         @Override
         public void onClick(View v) {
-            if (onRecentLocationClickListener != null) {
-                onRecentLocationClickListener.onRecentLocationClick(recentLocation);
+            if (onRecentLocationClickListener != null && location != null) {
+                onRecentLocationClickListener.onRecentLocationClick(location);
             }
         }
     }
 
-    public void setRecentLocations(List<RecentLocation> recentLocations) {
-        this.recentLocations = recentLocations;
-        notifyDataSetChanged();
-    }
-
     public interface OnRecentLocationClickListener {
-        void onRecentLocationClick(RecentLocation recentLocation);
+        void onRecentLocationClick(Location location);
     }
 }

@@ -7,7 +7,7 @@ import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.LocalDataSource;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.NetworkDataSource;
-import org.me.gcu.adekunle_ganiyat_s2110996.util.AppExecutors;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
 
 import java.util.List;
 

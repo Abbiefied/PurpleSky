@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Location {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Location implements Parcelable {
     private String name;
     private int id;
     private double latitude;
@@ -13,6 +16,7 @@ public class Location {
 
     private static final Map<String, Integer> locationMap = new HashMap<>();
     private static String defaultLocationId;
+    private static String defaultLocationName;
 
     static {
         locationMap.put("Glasgow", 2648579);
@@ -23,11 +27,7 @@ public class Location {
         locationMap.put("Bangladesh", 1185241);
 
         defaultLocationId = "2648579"; // Set default location ID (e.g., Glasgow)
-    }
-
-    public Location(String name, int id) {
-        this.name = name;
-        this.id = id;
+        defaultLocationName ="Glasgow";
     }
 
     public Location(String name, int id, double latitude, double longitude) {
@@ -36,6 +36,29 @@ public class Location {
         this.latitude = latitude;
         this.longitude = longitude;
     }
+
+    public Location(String name) {
+        this.name = name;
+    }
+
+    protected Location(Parcel in) {
+        name = in.readString();
+        id = in.readInt();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+    }
+
+    public static final Creator<Location> CREATOR = new Creator<Location>() {
+        @Override
+        public Location createFromParcel(Parcel in) {
+            return new Location(in);
+        }
+
+        @Override
+        public Location[] newArray(int size) {
+            return new Location[size];
+        }
+    };
 
     public String getName() {
         return name;
@@ -81,6 +104,15 @@ public class Location {
         return "";
     }
 
+    public static void setDefaultLocationName(String locationName) {
+        for (Map.Entry<String, Integer> entry : locationMap.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(locationName)) {
+                defaultLocationId = String.valueOf(entry.getValue());
+                break;
+            }
+        }
+    }
+
     public static String getLocationIdByName(String locationName) {
         for (Map.Entry<String, Integer> entry : locationMap.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(locationName)) {
@@ -97,5 +129,18 @@ public class Location {
             }
         }
         return null;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeInt(id);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
     }
 }

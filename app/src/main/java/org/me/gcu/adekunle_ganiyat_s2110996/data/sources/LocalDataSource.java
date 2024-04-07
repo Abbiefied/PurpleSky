@@ -8,9 +8,11 @@ import com.google.gson.reflect.TypeToken;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LocalDataSource {
@@ -18,11 +20,15 @@ public class LocalDataSource {
     private static final String PREF_NAME = "weather_pref";
     private static final String KEY_CURRENT_WEATHER = "current_weather";
     private static final String KEY_FORECAST = "forecast";
+    private static final String PREF_RECENT_LOCATIONS = "pref_recent_locations";
+    private static final String KEY_RECENT_LOCATIONS = "key_recent_locations";
 
+    private final Context context;
     private final SharedPreferences sharedPreferences;
     private final Gson gson;
 
     public LocalDataSource(Context context) {
+        this.context = context;
         sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         gson = new Gson();
     }
@@ -52,5 +58,41 @@ public class LocalDataSource {
             return gson.fromJson(json, type);
         }
         return new ArrayList<>();
+    }
+
+
+
+    public List<Location> getRecentLocations() {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_RECENT_LOCATIONS, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_RECENT_LOCATIONS, null);
+        if (json != null) {
+            Type type = new TypeToken<List<Location>>() {}.getType();
+//            List<Location> recentLocations = gson.fromJson(json, type);
+//            Collections.reverse(recentLocations); // Reverse the order to get the most recent first
+            return gson.fromJson(json, type);
+        }
+        return new ArrayList<>();
+    }
+
+    public void addRecentLocation(Location location) {
+        List<Location> recentLocations = getRecentLocations();
+        if (recentLocations == null) {
+            recentLocations = new ArrayList<>();
+        }
+
+        // Remove the location if it already exists
+        recentLocations.removeIf(loc -> loc.getId() == location.getId());
+
+        // Add the new location to the top of the list
+        recentLocations.add(0, location);
+
+        // Limit the list to the last 3 locations
+        if (recentLocations.size() > 2) {
+            recentLocations = recentLocations.subList(0, 3);
+        }
+
+        SharedPreferences.Editor editor = context.getSharedPreferences(PREF_RECENT_LOCATIONS, Context.MODE_PRIVATE).edit();
+        editor.putString(KEY_RECENT_LOCATIONS, new Gson().toJson(recentLocations));
+        editor.apply();
     }
 }

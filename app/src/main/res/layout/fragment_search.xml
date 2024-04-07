@@ -10,7 +10,7 @@
         android:padding="16dp">
 
         <ImageView
-            android:id="@+id/back_button"
+            android:id="@+id/back_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/symbol"
@@ -20,7 +20,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/back_button"
+            android:layout_toEndOf="@id/back_icon"
             android:layout_centerVertical="true"
             android:text="Go back"
             android:textSize="16sp" />
@@ -33,8 +33,8 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <AutoCompleteTextView
-            android:id="@+id/search_box"
+        <EditText
+            android:id="@+id/search_edit_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -44,7 +44,7 @@
             android:inputType="text"/>
 
         <ImageView
-            android:id="@+id/search_button"
+            android:id="@+id/search_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/search_icon"
@@ -52,6 +52,10 @@
             android:focusable="true" />
 
     </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/suggestions_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recent_locations_recycler_view"

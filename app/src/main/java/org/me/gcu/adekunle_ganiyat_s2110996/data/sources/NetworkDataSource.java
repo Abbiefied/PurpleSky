@@ -4,11 +4,13 @@ import android.util.Log;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
-import org.me.gcu.adekunle_ganiyat_s2110996.util.AppExecutors;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.NetworkUtils;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NetworkDataSource {
@@ -60,5 +62,35 @@ public class NetworkDataSource {
                 AppExecutors.getInstance().mainThread().execute(() -> callback.onFailure(e.getMessage()));
             }
         });
+    }
+
+    public void fetchSearchSuggestions(String query, SearchCallback<List<Location>> callback) {
+        // Simulate network call to fetch search suggestions
+        List<Location> suggestions = new ArrayList<>();
+        suggestions.add(new Location("Glasgow"));
+        suggestions.add(new Location("Bangladesh"));
+        suggestions.add(new Location("London"));
+        suggestions.add(new Location("New York"));
+        suggestions.add(new Location("Mauritius"));
+        suggestions.add(new Location("Oman"));
+
+        // Filter suggestions based on the query
+        List<Location> filteredSuggestions = new ArrayList<>();
+        for (Location location : suggestions) {
+            if (location.getName().toLowerCase().contains(query.toLowerCase())) {
+                filteredSuggestions.add(location);
+            }
+        }
+
+        if (filteredSuggestions.isEmpty()) {
+            callback.onFailure("No suggestions found");
+        } else {
+            callback.onSuccess(filteredSuggestions);
+        }
+    }
+
+    public interface SearchCallback<T> {
+        void onSuccess(T data);
+        void onFailure(String message);
     }
 }

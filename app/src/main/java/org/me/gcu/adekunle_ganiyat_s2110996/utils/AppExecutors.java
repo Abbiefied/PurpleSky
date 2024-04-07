@@ -1,4 +1,4 @@
-package org.me.gcu.adekunle_ganiyat_s2110996.util;
+package org.me.gcu.adekunle_ganiyat_s2110996.utils;
 
 import android.os.Handler;
 import android.os.Looper;
