@@ -1,5 +1,8 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,22 +26,28 @@ import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.AutoRefreshReceiver;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters.ForecastAdapter;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters.LocationAdapter;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.viewmodels.WeatherViewModel;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.DateUtils;
+
+import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements ForecastAdapter.OnForecastClickListener {
 
     private BottomNavigationView bottomNavigationView;
-
+    private ImageButton settingsIcon;
     private WeatherRepository weatherRepository;
     private RecyclerView locationRecyclerView;
     private RecyclerView forecastRecyclerView;
     private TextView greetingTextView;
     private TextView temperatureTextView;
+    private TextView temperatureFahTextView;
     private TextView locationTextView;
+    private TextView dateTextView;
+    private TextView dayTextView;
     private WeatherViewModel weatherViewModel;
     private ForecastAdapter forecastAdapter;
     private ImageButton prevButton, nextButton;
@@ -57,16 +66,29 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         setupListeners();
         handleSelectedLocation();
         setupLocationCarousel();
-
+        scheduleAutoRefresh();
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         Log.d("MainActivity", "bottomNavigationView: " + bottomNavigationView);
+
+        //Settings Icon to navigate to Settings Activity
+        settingsIcon = findViewById(R.id.settings_icon);
+        settingsIcon.setOnClickListener(v -> {
+            String locationId = Location.getDefaultLocationId();
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            intent.putExtra("locationId", locationId);
+            startActivity(intent);
+        });
+
     }
     private void initViews() {
         locationRecyclerView = findViewById(R.id.location_recycler_view);
         forecastRecyclerView = findViewById(R.id.forecast_recycler_view);
         greetingTextView = findViewById(R.id.greeting_text_view);
+        dateTextView = findViewById(R.id.date_text_view);
+        dayTextView = findViewById(R.id.day_text_view);
         temperatureTextView = findViewById(R.id.temperature_text_view);
+        temperatureFahTextView = findViewById(R.id.temperatureFah_text_view);
         locationTextView = findViewById(R.id.location_text_view);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         prevButton = findViewById(R.id.prev_button);
@@ -109,7 +131,10 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private void updateCurrentWeather(CurrentWeather currentWeather) {
         if (currentWeather != null) {
             greetingTextView.setText(DateUtils.getGreeting());
+            dayTextView.setText(currentWeather.getDate());
+            dayTextView.setText(currentWeather.getDayOfWeek());
             temperatureTextView.setText(String.format("%.1f°C", currentWeather.getTemperature()));
+            temperatureFahTextView.setText(String.format("%.1f°C", currentWeather.getTemperatureFahrenheit()));
             locationTextView.setText(Location.getDefaultLocationName());
         }
     }
@@ -141,6 +166,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
             return true;
         } else if (itemId == R.id.navigation_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            return true;
+        } else if (itemId == R.id.navigation_compare) {
+            startActivity(new Intent(MainActivity.this, WeatherComparisonActivity.class));
             return true;
         }
         return false;
@@ -202,6 +230,27 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         Intent intent = new Intent(MainActivity.this, DetailedForecastActivity.class);
       intent.putExtra("forecast", forecast);
        startActivity(intent);
+    }
+
+    //Schedule auto refresh
+    private void scheduleAutoRefresh() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        // Set the refresh times (8 am and 10 pm)
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 8);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        Intent intent = new Intent(this, AutoRefreshReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Schedule the alarms
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+        calendar.set(Calendar.HOUR_OF_DAY, 22);
+        pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
     }
 
     @Override

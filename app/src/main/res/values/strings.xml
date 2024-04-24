@@ -25,4 +25,65 @@
         <item>Oman</item>
         <item>Mauritius</item>
     </string-array>
+    <string name="title_activity_air_quality">AirQualityActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+
+    <string name="title_activity_settings2">SettingsActivity2</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="refresh_icon_description">Refresh weather data</string>
+    <string name="last_updated">Last updated time</string>
+    <string name="precipitation">Precipitation</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">wind</string>
+    <string name="weatherCondition">weatherCondition</string>
+    <string name="weather_icon_description">Weather Icon</string>
+    <string name="location_name">Location name</string>
+
+    <!-- Refresh Frquency Entries -->
+    <string-array name="refresh_frequency_entries">
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>12 hours</item>
+        <item>24 hours</item>
+    </string-array>
+
+    <!-- Refresh Frquency Values -->
+    <string-array name="refresh_frequency_values">
+        <item>1800</item>
+        <item>3600</item>
+        <item>10800</item>
+        <item>21600</item>
+        <item>43200</item>
+        <item>86400</item>
+    </string-array>
+
+    <!-- Theme Entries -->
+    <string-array name="theme_entries">
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+
+    <!-- Theme Values -->
+    <string-array name="theme_values">
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
 </resources>

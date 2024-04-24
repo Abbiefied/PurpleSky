@@ -1,7 +1,10 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.data.models;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class Forecast implements Parcelable {
     private String title;
@@ -12,6 +15,8 @@ public class Forecast implements Parcelable {
     private float maxTemperatureCelcius;
     private float minTemperatureFahrenheit;
     private float maxTemperatureFahrenheit;
+    private String weatherCondition;
+    private String todayWeatherCondition;
     private String windDirection;
     private float windSpeed;
     private String visibility;
@@ -26,7 +31,7 @@ public class Forecast implements Parcelable {
         // Default constructor
     }
 
-    public Forecast(String title, String date, String dayOfWeek, String time, float minTemperatureCelcius, float maxTemperatureCelcius, float minTemperatureFahrenheit, float maxTemperatureFahrenheit, String windDirection, float windSpeed, String visibility, String pressure, String humidity, String uvRisk, String pollution, String sunrise, String sunset) {
+    public Forecast(String title, String date, String dayOfWeek, String time, float minTemperatureCelcius, float maxTemperatureCelcius, float minTemperatureFahrenheit, float maxTemperatureFahrenheit, String weatherCondition, String todayWeatherCondition, String windDirection, float windSpeed, String visibility, String pressure, String humidity, String uvRisk, String pollution, String sunrise, String sunset) {
         this.title = title;
         this.date = date;
         this.dayOfWeek = dayOfWeek;
@@ -35,6 +40,8 @@ public class Forecast implements Parcelable {
         this.maxTemperatureCelcius = maxTemperatureCelcius;
         this.minTemperatureFahrenheit = minTemperatureFahrenheit;
         this.maxTemperatureFahrenheit = maxTemperatureFahrenheit;
+        this.weatherCondition = weatherCondition;
+        this.todayWeatherCondition = todayWeatherCondition;
         this.windDirection = windDirection;
         this.windSpeed = windSpeed;
         this.visibility = visibility;
@@ -55,6 +62,8 @@ public class Forecast implements Parcelable {
         maxTemperatureCelcius = in.readFloat();
         minTemperatureFahrenheit = in.readFloat();
         maxTemperatureFahrenheit = in.readFloat();
+        weatherCondition = in.readString();
+        todayWeatherCondition = in.readString();
         windDirection = in.readString();
         windSpeed = in.readFloat();
         visibility = in.readString();
@@ -78,10 +87,12 @@ public class Forecast implements Parcelable {
         }
     };
 
-    public Forecast(String date, float minTemperatureCelcius, float maxTemperatureCelcius, String humidity) {
+    public Forecast(String date, String dayOfWeek, float minTemperatureCelcius, float maxTemperatureCelcius, String weatherCondition, String humidity) {
         this.date = date;
+        this.dayOfWeek = dayOfWeek;
         this.minTemperatureCelcius = minTemperatureCelcius;
         this.maxTemperatureCelcius = maxTemperatureCelcius;
+        this.weatherCondition = weatherCondition;
         this.humidity = humidity;
     }
 
@@ -90,7 +101,6 @@ public class Forecast implements Parcelable {
     public String getTitle() {
         return title;
     }
-
     public void setTitle(String title) {
         this.title = title;
     }
@@ -114,7 +124,6 @@ public class Forecast implements Parcelable {
     public String getTime() {
         return time;
     }
-
     public void setTime(String time) {
         this.time = time;
     }
@@ -149,6 +158,20 @@ public class Forecast implements Parcelable {
 
     public void setMaxTemperatureFahrenheit(float maxTemperatureFahrenheit) {
         this.maxTemperatureFahrenheit = maxTemperatureFahrenheit;
+    }
+
+    public String getWeatherCondition() {
+        return weatherCondition;
+    }
+    public void setWeatherCondition(String weatherCondition) {
+        this.weatherCondition = weatherCondition;
+    }
+
+    public String getTodayWeatherCondition() {
+        return weatherCondition;
+    }
+    public void setTodayWeatherCondition(String weatherCondition) {
+        this.weatherCondition = weatherCondition;
     }
 
     public String getWindDirection() {
@@ -238,6 +261,8 @@ public class Forecast implements Parcelable {
         dest.writeFloat(maxTemperatureCelcius);
         dest.writeFloat(minTemperatureFahrenheit);
         dest.writeFloat(maxTemperatureFahrenheit);
+        dest.writeString(weatherCondition);
+        dest.writeString(todayWeatherCondition);
         dest.writeString(windDirection);
         dest.writeFloat(windSpeed);
         dest.writeString(visibility);

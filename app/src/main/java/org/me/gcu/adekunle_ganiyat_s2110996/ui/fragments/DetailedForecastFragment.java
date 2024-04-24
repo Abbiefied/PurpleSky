@@ -1,6 +1,9 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.ui.fragments;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,11 +21,15 @@ public class DetailedForecastFragment extends Fragment {
     private static final String ARG_FORECAST = "forecast";
 
     private TextView dateTextView;
+    private TextView dayOfWeekTextView;
     private TextView temperatureTextView;
     private TextView windTextView;
     private TextView humidityTextView;
     private TextView visibilityTextView;
     private TextView pressureTextView;
+    private TextView windSpeedTextView;
+    private TextView weatherConditionTextView;
+    private TextView tWeatherConditionTextView;
 
     public DetailedForecastFragment() {
         // Required empty public constructor
@@ -41,11 +48,15 @@ public class DetailedForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_detailed_forecast, container, false);
         dateTextView = view.findViewById(R.id.date_text_view);
+        dayOfWeekTextView = view.findViewById(R.id.day_text_view);
         temperatureTextView = view.findViewById(R.id.temperature_text_view);
         windTextView = view.findViewById(R.id.wind_text_view);
+        tWeatherConditionTextView = view.findViewById(R.id.tWeather_text_view);
+        windSpeedTextView = view.findViewById(R.id.wind_speed_text_view);
         humidityTextView = view.findViewById(R.id.humidity_text_view);
         visibilityTextView = view.findViewById(R.id.visibility_text_view);
         pressureTextView = view.findViewById(R.id.pressure_text_view);
+        weatherConditionTextView = view.findViewById(R.id.weatherCon_text_view);
         return view;
     }
 
@@ -64,9 +75,17 @@ public class DetailedForecastFragment extends Fragment {
     private void displayForecastDetails(Forecast forecast) {
         dateTextView.setText(forecast.getDate());
         temperatureTextView.setText(String.format("%.1f°C - %.1f°C", forecast.getMinTemperatureCelcius(), forecast.getMaxTemperatureCelcius()));
-        windTextView.setText(String.format("%s, %.1f mph", forecast.getWindDirection(), forecast.getWindSpeed()));
+        windTextView.setText(forecast.getWindDirection());
+        windSpeedTextView.setText(String.format("%.1fmph", forecast.getWindSpeed()));
+        Log.d(TAG, "ForecastXML WindSpeed:" + String.format("%.1fmph", forecast.getWindSpeed()));
         humidityTextView.setText(forecast.getHumidity());
+        tWeatherConditionTextView.setText(forecast.getTodayWeatherCondition());
+        Log.d(TAG, "ForecastXML humidity:" + forecast.getHumidity());
         visibilityTextView.setText(forecast.getVisibility());
+        Log.d(TAG, "ForecastXML visibility:" + forecast.getVisibility());
         pressureTextView.setText(forecast.getPressure());
+        Log.d(TAG, "ForecastXML pressure:" + forecast.getPressure());
+        weatherConditionTextView.setText(forecast.getWeatherCondition());
+        Log.d(TAG, "ForecastXML weathercondition:" + forecast.getWeatherCondition());
     }
 }

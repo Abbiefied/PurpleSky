@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+        android:key="refresh_data"
+        android:title="Refresh Data"
+        app:icon="@drawable/sync"
+        android:summary="Refresh the weather data" />
+
+    <Preference
+        android:key="data_refresh_frequency"
+        android:title="Data Refresh Frequency"
+        android:summary="Set the time for weather data refresh" />
+
+    <Preference
+        android:key="notifications"
+        android:title="Notifications"
+        android:summary="Enable or disable notifications"
+        android:fragment="org.me.gcu.adekunle_ganiyat_s2110996.activities.SettingsActivity$NotificationsFragment" />
+
+    <CheckBoxPreference
+        android:key="add_widget"
+        android:title="Add Widget to Homescreen"
+        android:summary="Add weather widget to your homescreen" />
+
+    <SwitchPreference
+        android:key="alerts"
+        android:title="Alerts"
+        android:summary="Enable or disable alerts" />
+
+    <ListPreference
+        android:key="theme"
+        android:title="Theme"
+        android:summary="Change the app's theme"
+        android:entries="@array/theme_entries"
+        android:entryValues="@array/theme_values"
+        android:defaultValue="light" />
+
+    <Preference
+        android:key="delete_cache"
+        android:title="Delete Cached Data"
+        android:summary="Delete cached weather data" />
+
+
+    <Preference
+        android:key="about"
+        android:title="About"
+        android:summary="App information"
+        android:fragment="org.me.gcu.adekunle_ganiyat_s2110996.ui.fragments.AboutFragment" />
+
+</PreferenceScreen>

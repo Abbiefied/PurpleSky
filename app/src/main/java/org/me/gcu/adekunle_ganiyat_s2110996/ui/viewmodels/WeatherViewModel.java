@@ -18,7 +18,8 @@ public class WeatherViewModel extends AndroidViewModel {
     private final WeatherRepository weatherRepository;
     private final MutableLiveData<CurrentWeather> currentWeatherLiveData;
     private final MutableLiveData<List<Forecast>> weatherForecastLiveData;
-
+    private MutableLiveData<Boolean> refreshSuccess = new MutableLiveData<>();
+    private MutableLiveData<String> refreshError = new MutableLiveData<>();
     public WeatherViewModel(Application application) {
         super(application);
         weatherRepository = new WeatherRepository(application);
@@ -62,6 +63,29 @@ public class WeatherViewModel extends AndroidViewModel {
             }
         });
     }
+
+    public void refreshWeatherData(String locationId) {
+        weatherRepository.refreshWeatherData(locationId, new WeatherRepository.WeatherCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                refreshSuccess.postValue(true);
+            }
+
+            @Override
+            public void onFailure(String message) {
+                refreshError.postValue(message);
+            }
+        });
+    }
+
+    public LiveData<Boolean> getRefreshSuccess() {
+        return refreshSuccess;
+    }
+
+    public LiveData<String> getRefreshError() {
+        return refreshError;
+    }
+
 
     private void handleError(String errorMessage) {
         Log.e("MainActivity", errorMessage);

@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -21,8 +22,19 @@
 
         <activity
             android:name=".activities.SettingsActivity"
-            android:exported="false"
             android:label="@string/title_activity_settings"
+            android:parentActivityName=".activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".activities.WeatherComparisonActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.AirQualityActivity"
+            android:exported="false"
+            android:label="@string/title_activity_air_quality"
             android:theme="@style/Theme.Adekunle_Ganiyat_S2110996" />
         <activity
             android:name=".activities.MapActivity"
@@ -56,9 +68,35 @@
             android:label="@string/title_activity_detailed_forecast"
             android:parentActivityName=".activities.MainActivity"
             android:theme="@style/Theme.Adekunle_Ganiyat_S2110996" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCfy_LipUHZ2iIupLckBFUSU0n9dNncs4o" />
+
+        <receiver
+            android:name=".data.sources.AutoRefreshReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name=".activities.WeatherNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="location">
+            <intent-filter>
+                <action android:name="org.me.gcu.adekunle_ganiyat_s2110996.WEATHER_NOTIFICATION_SERVICE" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".activities.WeatherWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
     </application>
 
 </manifest>

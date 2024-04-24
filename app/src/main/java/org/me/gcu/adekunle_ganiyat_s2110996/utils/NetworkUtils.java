@@ -13,10 +13,16 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class NetworkUtils {
 
@@ -56,6 +62,32 @@ public class NetworkUtils {
         }
     }
 
+    public static String postRequestToHttpUrl(String urlString, String requestBody) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("POST");
+        urlConnection.setRequestProperty("Content-Type", "application/json");
+        urlConnection.setDoOutput(true);
+
+        OutputStream outputStream = urlConnection.getOutputStream();
+        outputStream.write(requestBody.getBytes());
+        outputStream.flush();
+        outputStream.close();
+
+        int responseCode = urlConnection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuilder builder = new StringBuilder();
+            int character;
+            while ((character = inputStream.read()) != -1) {
+                builder.append((char) character);
+            }
+            return builder.toString();
+        } else {
+            throw new IOException("HTTP error code: " + responseCode);
+        }
+    }
+
     public static CurrentWeather parseCurrentWeatherXml(String xml) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -79,7 +111,25 @@ public class NetworkUtils {
                         temperatureStr = temperatureStr.replace("Â", ""); // Remove the special character
                         float temperature = Float.parseFloat(temperatureStr);
                         currentWeather.setTemperature(temperature);
+
+                        // Extract temperature in Fahrenheit
+                        String temperatureFStr = parts[1].trim().split("\\(")[1].split("°")[0];
+                        temperatureFStr = temperatureFStr.replace("Â", ""); // Remove the special character
+                        float temperatureF = Float.parseFloat(temperatureFStr);
+                        currentWeather.setTemperatureFahrenheit(temperatureF);
+
+                        // Extract day of the week
+                        String dayOfWeek = parts[0].split("-")[0].trim();
+                        currentWeather.setDayOfWeek(dayOfWeek);
+                        Log.d(TAG, "parseCurrentWeatherXml: " + dayOfWeek);
                     }
+                }
+            } else if (eventType == XmlPullParser.START_TAG && "pubDate".equals(parser.getName())) {
+                if (currentWeather != null) {
+                    String pubDate = parser.nextText();
+                    // Extract date
+                    String date = pubDate.split(",")[1].trim();
+                    currentWeather.setDate(date);
                 }
             } else if (eventType == XmlPullParser.START_TAG && "description".equals(parser.getName())) {
                 if (currentWeather != null) {
@@ -128,38 +178,59 @@ public class NetworkUtils {
 
         int eventType = parser.getEventType();
         Forecast forecast = null;
+        int itemCount = 0;
+        String baseDate = null;
 
         while (eventType != XmlPullParser.END_DOCUMENT) {
             if (eventType == XmlPullParser.START_TAG && "item".equals(parser.getName())) {
                 forecast = new Forecast();
+                itemCount++;
             } else if (eventType == XmlPullParser.START_TAG && "title".equals(parser.getName())) {
                 if (forecast != null) {
                     String title = parser.nextText();
                     forecast.setTitle(title);
-                        // Extract minTemp and maxTemp in Celsius and Fahrenheit
+                    // Extract minTemp and maxTemp in Celsius and Fahrenheit
                     if (title != null) {
                         String[] tempParts = title.split("Minimum Temperature: ");
                         if (tempParts.length >= 2) {
                             String minTempCelsius = tempParts[1].split("Â")[0].trim();
-                            forecast.setMinTemperatureCelcius(Float.parseFloat(minTempCelsius));
+                            float minTemperatureCelsius = Float.parseFloat(minTempCelsius);
+                            forecast.setMinTemperatureCelcius(Float.isNaN(minTemperatureCelsius) ? 0.0f : minTemperatureCelsius);
 
                             // Extract maxTemp Celsius if available
                             String[] maxTempParts = title.split("Maximum Temperature: ");
                             if (maxTempParts.length >= 2) {
                                 String maxTempCelsius = maxTempParts[1].split("Â")[0].trim();
-                                forecast.setMaxTemperatureCelcius(Float.parseFloat(maxTempCelsius));
+                                float maxTemperatureCelsius = Float.parseFloat(maxTempCelsius);
+                                forecast.setMaxTemperatureCelcius(Float.isNaN(maxTemperatureCelsius) ? 0.0f : maxTemperatureCelsius);
                             } else {
-                                forecast.setMaxTemperatureCelcius(Float.NaN);
+                                forecast.setMaxTemperatureCelcius(0.0f);
                             }
 
                             // Extract maxTemp Fahrenheit if available
                             String[] fahrenheitParts = title.split("\\( |\\)");
                             if (fahrenheitParts.length >= 3) {
                                 String maxTempFahrenheit = fahrenheitParts[2].split("°")[0].trim();
-                                forecast.setMaxTemperatureFahrenheit(Float.parseFloat(maxTempFahrenheit));
+                                maxTempFahrenheit = maxTempFahrenheit.replace("Â", ""); // Remove the special character
+                                float maxTemperatureFahrenheit = Float.parseFloat(maxTempFahrenheit);
+                                forecast.setMaxTemperatureFahrenheit(Float.isNaN(maxTemperatureFahrenheit) ? 0.0f : maxTemperatureFahrenheit);
                             } else {
-                                forecast.setMaxTemperatureFahrenheit(Float.NaN);
+                                forecast.setMaxTemperatureFahrenheit(0.0f);
                             }
+                        }
+
+
+                        // Extract day of the week
+                        String dayOfWeek = title.split(":")[0].trim();
+                        forecast.setDayOfWeek(dayOfWeek);
+
+                        // Extract weather condition
+                        String weatherCondition = title.split(":")[1].split(",")[0].trim();
+                        forecast.setWeatherCondition(weatherCondition);
+
+                        if (itemCount == 0) {
+                          forecast.setTodayWeatherCondition(weatherCondition);
+                            Log.d(TAG, "parseForecastXml: " + weatherCondition);
                         }
                     }
                 }
@@ -205,8 +276,37 @@ public class NetworkUtils {
                         }
                     }
                 }
+            } else if (eventType == XmlPullParser.START_TAG && "pubDate".equals(parser.getName())) {
+                if (forecast != null && itemCount == 1) {
+                    String pubDate = parser.nextText();
+                    // Extract date
+                    String date = pubDate.split(",")[1].trim();
+                    SimpleDateFormat inputFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+                    SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+                    try {
+                        Date parsedDate = inputFormat.parse(date);
+                        baseDate = outputFormat.format(parsedDate);
+                        forecast.setDate(baseDate);
+                    } catch (ParseException e) {
+                        Log.e(TAG, "Error parsing date: " + date, e);
+                    }
+                }
             } else if (eventType == XmlPullParser.END_TAG && "item".equals(parser.getName())) {
                 if (forecast != null) {
+                    if (itemCount > 1 && baseDate != null) {
+                        // Calculate the date for subsequent forecast items
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+                        try {
+                            Date parsedDate = dateFormat.parse(baseDate);
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.setTime(parsedDate);
+                            calendar.add(Calendar.DAY_OF_YEAR, itemCount - 1);
+                            String date = dateFormat.format(calendar.getTime());
+                            forecast.setDate(date);
+                        } catch (ParseException e) {
+                            Log.e(TAG, "Error parsing date: " + baseDate, e);
+                        }
+                    }
                     Log.d(TAG, "Received forecast Max Temp weather XML data: " + forecast.getMaxTemperatureCelcius());
                     Log.d(TAG, "Received forecast Min Temp weather XML data: " + forecast.getMinTemperatureCelcius());
                     forecastList.add(forecast);
@@ -217,6 +317,5 @@ public class NetworkUtils {
         }
 
         return forecastList;
-
     }
 }
