@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.CustomMarker;
 
 import java.util.Map;
 
@@ -17,12 +18,10 @@ public class WeatherInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
     private final View mWindow;
     private final Context mContext;
-    private final Map<String, CurrentWeather> mWeatherData;
 
-    public WeatherInfoWindowAdapter(Context context, Map<String, CurrentWeather> weatherData) {
+    public WeatherInfoWindowAdapter(Context context) {
         mContext = context;
         mWindow = LayoutInflater.from(context).inflate(R.layout.layout_info_window, null);
-        mWeatherData = weatherData;
     }
 
     @Override
@@ -37,19 +36,22 @@ public class WeatherInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void render(Marker marker, View view) {
-        String locationId = (String) marker.getTag();
-        CurrentWeather currentWeather = mWeatherData.get(locationId);
+        Object tag = marker.getTag();
+        if (tag instanceof CustomMarker) {
+            CustomMarker customMarker = (CustomMarker) tag;
+            if (customMarker.isWeatherMarker()) {
+                CurrentWeather currentWeather = customMarker.getCurrentWeather();
 
-        if (currentWeather != null) {
-            TextView tvLocationName = view.findViewById(R.id.tv_location_name);
-            TextView tvTemperature = view.findViewById(R.id.tv_temperature);
-            TextView tvHumidity = view.findViewById(R.id.tv_humidity);
-            TextView tvWindSpeed = view.findViewById(R.id.tv_wind_speed);
+                TextView tvLocationName = view.findViewById(R.id.tv_location_name);
+                TextView tvTemperature = view.findViewById(R.id.tv_temperature);
+                TextView tvHumidity = view.findViewById(R.id.tv_humidity);
+                TextView tvWindSpeed = view.findViewById(R.id.tv_wind_speed);
 
-            tvLocationName.setText(marker.getTitle());
-            tvTemperature.setText("Temperature: " + currentWeather.getTemperature() + "°C");
-            tvHumidity.setText("Humidity: " + currentWeather.getHumidity());
-            tvWindSpeed.setText("Wind Speed: " + currentWeather.getWindSpeed());
+                tvLocationName.setText(currentWeather.getTitle()); // Use the title from the CurrentWeather object
+                tvTemperature.setText("Temperature: " + currentWeather.getTemperature() + "°C");
+                tvHumidity.setText("Humidity: " + currentWeather.getHumidity());
+                tvWindSpeed.setText("Wind Speed: " + currentWeather.getWindSpeed());
+            }
         }
     }
 }

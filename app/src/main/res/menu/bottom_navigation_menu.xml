@@ -16,6 +16,11 @@
         android:title="@string/title_map" />
 
     <item
+        android:id="@+id/navigation_compare"
+        android:icon="@drawable/settings_icon"
+        android:title="compare" />
+
+    <item
         android:id="@+id/navigation_settings"
         android:icon="@drawable/settings_icon"
         android:title="@string/title_settings" />

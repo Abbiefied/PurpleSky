@@ -1,6 +1,9 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class DateUtils {
 
@@ -16,5 +19,28 @@ public class DateUtils {
         } else {
             return "Good night";
         }
+    }
+
+    public static String getDayOfWeek() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+        return dateFormat.format(calendar.getTime());
+    }
+
+    public static String getCurrentDate() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
+        return dateFormat.format(calendar.getTime());
+    }
+
+    public static String getCurrentTime() {
+        long currentTime = System.currentTimeMillis();
+
+        Date date = new Date(currentTime);
+
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+
+        // Format the date and print the string representation
+        return df.format(date);
     }
 }

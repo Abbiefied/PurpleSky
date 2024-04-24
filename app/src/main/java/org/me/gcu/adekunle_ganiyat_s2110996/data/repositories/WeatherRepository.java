@@ -3,8 +3,10 @@ package org.me.gcu.adekunle_ganiyat_s2110996.data.repositories;
 import android.content.Context;
 import android.util.Log;
 
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.AirQualityData;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.LocalDataSource;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.NetworkDataSource;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
@@ -85,6 +87,73 @@ public class WeatherRepository {
                     });
                 }
             });
+        });
+    }
+
+    public void fetchSearchSuggestions(String query, NetworkDataSource.SearchCallback<List<Location>> callback) {
+        AppExecutors.getInstance().networkIO().execute(() ->
+                networkDataSource.fetchSearchSuggestions(query, callback));
+    }
+
+    public void fetchAirQualityData(double latitude, double longitude, NetworkDataSource.WeatherCallback<AirQualityData> callback) {
+        AppExecutors.getInstance().networkIO().execute(() ->
+                networkDataSource.fetchAirQualityData(latitude, longitude, callback));
+    }
+
+    public void saveCurrentWeather(String locationId, CurrentWeather currentWeather) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            localDataSource.saveCurrentWeather(locationId, currentWeather);
+        });
+    }
+
+    public void saveWeatherForecast(String locationId, List<Forecast> forecastList) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            localDataSource.saveWeatherForecast(locationId, forecastList);
+        });
+    }
+    public void refreshWeatherData(String locationId, WeatherCallback<Void> callback) {
+        appExecutors.networkIO().execute(() -> {
+            try {
+                // Refresh current weather data
+                fetchCurrentWeather(locationId, new WeatherCallback<CurrentWeather>() {
+                    @Override
+                    public void onSuccess(CurrentWeather currentWeather) {
+                        saveCurrentWeather(locationId, currentWeather);
+                    }
+
+                    @Override
+                    public void onFailure(String message) {
+                        // Handle the failure case
+                        appExecutors.mainThread().execute(() -> {
+                            callback.onFailure(message);
+                        });
+                    }
+                });
+
+                // Refresh forecast data
+                fetchWeatherForecast(locationId, new WeatherCallback<List<Forecast>>() {
+                    @Override
+                    public void onSuccess(List<Forecast> forecastList) {
+                        saveWeatherForecast(locationId, forecastList);
+                    }
+
+                    @Override
+                    public void onFailure(String message) {
+                        // Handle the failure case
+                        appExecutors.mainThread().execute(() -> {
+                            callback.onFailure(message);
+                        });
+                    }
+                });
+
+                appExecutors.mainThread().execute(() -> {
+                    callback.onSuccess(null);
+                });
+            } catch (Exception e) {
+                appExecutors.mainThread().execute(() -> {
+                    callback.onFailure(e.getMessage());
+                });
+            }
         });
     }
 

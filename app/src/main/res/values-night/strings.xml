@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="refresh_icon_description">Refresh weather data</string>
+    <string name="last_updated">Last updated time</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">wind</string>
+    <string name="weatherCondition">weatherCondition</string>
+    <string name="weather_icon_description">Weather Icon</string>
+</resources>

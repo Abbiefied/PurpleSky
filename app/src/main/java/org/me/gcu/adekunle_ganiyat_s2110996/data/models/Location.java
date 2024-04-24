@@ -131,6 +131,15 @@ public class Location implements Parcelable {
         return null;
     }
 
+    public static String getLocationNameById(String locationId) {
+        for (Map.Entry<String, Integer> entry : locationMap.entrySet()) {
+            if (String.valueOf(entry.getValue()).equals(locationId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -142,5 +151,10 @@ public class Location implements Parcelable {
         dest.writeInt(id);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

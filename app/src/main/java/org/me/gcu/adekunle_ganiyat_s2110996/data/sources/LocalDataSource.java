@@ -95,4 +95,11 @@ public class LocalDataSource {
         editor.putString(KEY_RECENT_LOCATIONS, new Gson().toJson(recentLocations));
         editor.apply();
     }
+
+    public void deleteCachedData() {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
+    }
 }

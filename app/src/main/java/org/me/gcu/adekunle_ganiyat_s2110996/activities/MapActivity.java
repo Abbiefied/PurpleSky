@@ -1,10 +1,18 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,36 +26,37 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.TileOverlay;
-import com.google.android.gms.maps.model.TileOverlayOptions;
-import com.google.maps.android.heatmaps.HeatmapTileProvider;
-
 
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.AirQualityData;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.NetworkDataSource;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters.WeatherInfoWindowAdapter;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.CustomMarker;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
     private SearchView searchView;
     private SimpleCursorAdapter suggestionAdapter;
-    private HeatmapTileProvider mHeatmapTileProvider;
-    private TileOverlay mHeatmapOverlay;
+    private Map<String, CurrentWeather> mWeatherData = new HashMap<>();
+    // Set to store existing air quality markers
+    Set<Marker> airQualityMarkers = new HashSet<>();
+
+    // Initialize a flag to track if the camera movement was caused by an info window being shown
+    boolean isCameraMovedByInfoWindow = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +64,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
 
         searchView = findViewById(R.id.search_view);
-        setupSearchSuggestions();
+        setupSearchSuggestions(airQualityMarkers);;
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                searchLocation(query);
+                searchLocation(query, airQualityMarkers);
                 return true;
             }
 
@@ -73,8 +82,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-    private Map<String, CurrentWeather> mWeatherData = new HashMap<>();
-
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -82,6 +90,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // Set the map view to Glasgow on load
         LatLng glasgow = new LatLng(55.8642, -4.2518);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(glasgow, 10));
+
+        // Initialize the WeatherInfoWindowAdapter
+        WeatherInfoWindowAdapter weatherInfoWindowAdapter = new WeatherInfoWindowAdapter(this);
+        googleMap.setInfoWindowAdapter(weatherInfoWindowAdapter);
 
         // Add markers for specific locations
         for (Location location : Location.getPopularLocations()) {
@@ -92,23 +104,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             weatherRepository.fetchCurrentWeather(String.valueOf(location.getId()), new WeatherRepository.WeatherCallback<CurrentWeather>() {
                 @Override
                 public void onSuccess(CurrentWeather currentWeather) {
-                    // Get the weather icon based on temperature
-                    int iconResId = WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature());
-                    BitmapDescriptor weatherIcon = BitmapDescriptorFactory.fromResource(iconResId);
-
-                    // Create a custom marker with weather icon
-                    MarkerOptions markerOptions = new MarkerOptions()
-                            .position(latLng)
-                            .title(location.getName())
-                            .icon(weatherIcon);
-
-                    // Add the marker to the map
-                    Marker marker = googleMap.addMarker(markerOptions);
-                    marker.setTag(String.valueOf(location.getId()));
+                    // Create a custom marker with weather data
+                    CustomMarker weatherMarker = new CustomMarker(latLng, currentWeather, true);
+                    addCustomMarkerToMap(weatherMarker);
 
                     // Store the current weather data for the location
                     mWeatherData.put(String.valueOf(location.getId()), currentWeather);
                 }
+
 
                 @Override
                 public void onFailure(String message) {
@@ -116,21 +119,140 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     Log.e("MapActivity", "Failed to fetch current weather data: " + message);
                 }
             });
-        }
 
-        // Set info window adapter
-        googleMap.setInfoWindowAdapter(new WeatherInfoWindowAdapter(this, mWeatherData));
+            googleMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+                @Override
+                public void onCameraIdle() {
+                    if (!isCameraMovedByInfoWindow) {
+                        LatLngBounds bounds = googleMap.getProjection().getVisibleRegion().latLngBounds;
+                        fetchAirQualityForBounds(bounds, airQualityMarkers);
+                    }
+                    isCameraMovedByInfoWindow = false; // Reset the flag
+                }
+            });
+
+            // Set an info window click listener
+            googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(Marker marker) {
+                    isCameraMovedByInfoWindow = true; // Set the flag to true when an info window is clicked
+                }
+            });
+            // Set an info window click listener
+            googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(Marker marker) {
+                    isCameraMovedByInfoWindow = true; // Set the flag to true when an info window is clicked
+                }
+            });
+
+        }
 
         // Set marker click listener
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                marker.showInfoWindow();
-                return true;
+                Object tag = marker.getTag();
+                if (tag instanceof CurrentWeather) {
+                    // This is a weather marker, show weather info window
+                    marker.showInfoWindow();
+                    return true;
+                } else if (tag instanceof AirQualityData) {
+                    // If it is an air quality marker, navigate to AirQuality activity
+                    AirQualityData airQualityData = (AirQualityData) tag;
+                    // Navigate to the AirQuality activity
+                    Intent intent = new Intent(MapActivity.this, AirQualityActivity.class);
+                    intent.putExtra("air_quality_data", airQualityData);
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+    }
+
+    //Method to add custom marker to map
+    private void addCustomMarkerToMap(CustomMarker customMarker) {
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(customMarker.getPosition())
+                .title(customMarker.isWeatherMarker() ? "Weather" : "Air Quality");
+
+        // Customize the marker based on the type of data it contains
+        if (customMarker.isWeatherMarker()) {
+            // Set weather icon
+            int iconResId = WeatherIconUtils.getWeatherIconResId(customMarker.getCurrentWeather().getTemperature());
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(iconResId));
+        } else {
+            // Set air quality icon
+            BitmapDescriptor airQualityIcon = BitmapDescriptorFactory.fromBitmap(createAirQualityMarkerIcon(customMarker.getAirQualityData()));
+            markerOptions.icon(airQualityIcon);
+        }
+
+        Marker marker = googleMap.addMarker(markerOptions);
+        marker.setTag(customMarker); // Store the custom marker object as the tag
+    }
+
+    //Method to fetch air quality data for bounds in view
+    private void fetchAirQualityForBounds(LatLngBounds bounds, Set<Marker> airQualityMarkers) {
+        int numPoints = 8;
+
+        AppExecutors.getInstance().networkIO().execute(() -> {
+            for (int i = 0; i < numPoints; i++) {
+                double lat = bounds.southwest.latitude + (Math.random() * (bounds.northeast.latitude - bounds.southwest.latitude));
+                double lng = bounds.southwest.longitude + (Math.random() * (bounds.northeast.longitude - bounds.southwest.longitude));
+                LatLng latLng = new LatLng(lat, lng);
+
+                NetworkDataSource networkDataSource = new NetworkDataSource();
+                networkDataSource.fetchAirQualityData(lat, lng, new NetworkDataSource.WeatherCallback<AirQualityData>() {
+                    @Override
+                    public void onSuccess(AirQualityData airQualityData) {
+                        Bitmap markerIcon = createAirQualityMarkerIcon(airQualityData);
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(latLng)
+                                .icon(BitmapDescriptorFactory.fromBitmap(markerIcon))
+                                .title("Air Quality");
+
+                        AppExecutors.getInstance().mainThread().execute(() -> {
+                            if (airQualityMarkers.size() < numPoints) {
+                                Marker marker = googleMap.addMarker(markerOptions);
+                                marker.setTag(airQualityData);
+                                airQualityMarkers.add(marker); // Add the marker to the set
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String message) {
+                        Log.e(TAG, "Failed to fetch air quality data: " + message);
+                    }
+                });
             }
         });
     }
-    private void searchLocation(String locationName) {
+
+    //Method to create air quality marker icon
+    private Bitmap createAirQualityMarkerIcon(AirQualityData airQualityData) {
+        View markerView = LayoutInflater.from(this).inflate(R.layout.layout_air_quality_marker, null);
+        TextView textAirQuality = markerView.findViewById(R.id.text_air_quality);
+        TextView textAqiValue = markerView.findViewById(R.id.text_aqi_value);
+
+        String aqiValue = airQualityData.getAirQualityIndex();
+        textAqiValue.setText(aqiValue);
+
+        markerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        markerView.layout(0, 0, markerView.getMeasuredWidth(), markerView.getMeasuredHeight());
+
+        Bitmap bitmap = Bitmap.createBitmap(markerView.getMeasuredWidth(), markerView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        markerView.draw(canvas);
+
+        return bitmap;
+    }
+
+
+    //Method to search for location
+    private void searchLocation(String locationName, Set<Marker> airQualityMarkers) {
         // Find the location ID based on the searched location name
         String locationId = Location.getLocationIdByName(locationName);
 
@@ -142,44 +264,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // Clear existing markers
             googleMap.clear();
 
-            // Add a marker for the searched location
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(latLng)
-                    .title(locationName);
-            Marker marker = googleMap.addMarker(markerOptions);
-
-            // Zoom the map to the searched location
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 7));
-
-            // Fetch and display weather information for the searched location
+            // Fetch and add weather marker for the searched location
             WeatherRepository weatherRepository = new WeatherRepository(this);
             weatherRepository.fetchCurrentWeather(locationId, new WeatherRepository.WeatherCallback<CurrentWeather>() {
                 @Override
                 public void onSuccess(CurrentWeather currentWeather) {
-                    // Get the weather icon based on temperature
-                    int iconResId = WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature());
-                    BitmapDescriptor weatherIcon = BitmapDescriptorFactory.fromResource(iconResId);
+                    // Create a custom marker with weather data
+                    CustomMarker weatherMarker = new CustomMarker(latLng, currentWeather, true);
+                    addCustomMarkerToMap(weatherMarker);
 
-                    // Update the marker icon with the weather icon
-                    marker.setIcon(weatherIcon);
-
-                    // Display weather information in the info window
-                    marker.setTag(locationId);
+                    // Store the current weather data for the location
                     mWeatherData.put(locationId, currentWeather);
-                    marker.showInfoWindow();
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Toast.makeText(MapActivity.this, "Failed to fetch weather data", Toast.LENGTH_SHORT).show();
+                    // Handle failure scenario
+                    Log.e("MapActivity", "Failed to fetch current weather data: " + message);
                 }
             });
+
+            // Zoom the map to the searched location
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
+
+            // Fetch and add air quality markers for the visible bounds
+            LatLngBounds bounds = googleMap.getProjection().getVisibleRegion().latLngBounds;
+            fetchAirQualityForBounds(bounds, airQualityMarkers);
         } else {
             Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void setupSearchSuggestions() {
+    //Method to setup search suggestions
+    private void setupSearchSuggestions(Set<Marker> airQualityMarkers) {
         String[] locationNames = getResources().getStringArray(R.array.locations);
 
         // Create a cursor with location names
@@ -213,7 +330,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                searchLocation(query);
+                searchLocation(query, airQualityMarkers);
                 return true;
             }
 
