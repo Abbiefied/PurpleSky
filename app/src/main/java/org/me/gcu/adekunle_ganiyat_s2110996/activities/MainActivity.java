@@ -1,5 +1,7 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -31,6 +34,7 @@ import org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters.ForecastAdapter;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.adapters.LocationAdapter;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.viewmodels.WeatherViewModel;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.DateUtils;
+import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -44,13 +48,18 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private RecyclerView forecastRecyclerView;
     private TextView greetingTextView;
     private TextView temperatureTextView;
-    private TextView temperatureFahTextView;
     private TextView locationTextView;
     private TextView dateTextView;
     private TextView dayTextView;
     private WeatherViewModel weatherViewModel;
     private ForecastAdapter forecastAdapter;
     private ImageButton prevButton, nextButton;
+    private TextView humidityTextView;
+    private TextView pressureTextView;
+    private TextView windDirectionTextView;
+    private TextView visibilityTextView;
+    private TextView weatherConTextView;
+    private ImageView weatherIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +78,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         scheduleAutoRefresh();
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        Log.d("MainActivity", "bottomNavigationView: " + bottomNavigationView);
+        int selectedMenuItem = getIntent().getIntExtra("selectedMenuItem", R.id.navigation_home);
+        bottomNavigationView.setSelectedItemId(selectedMenuItem);
 
         //Settings Icon to navigate to Settings Activity
         settingsIcon = findViewById(R.id.settings_icon);
@@ -88,9 +98,14 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         dateTextView = findViewById(R.id.date_text_view);
         dayTextView = findViewById(R.id.day_text_view);
         temperatureTextView = findViewById(R.id.temperature_text_view);
-        temperatureFahTextView = findViewById(R.id.temperatureFah_text_view);
         locationTextView = findViewById(R.id.location_text_view);
+        humidityTextView = findViewById(R.id.humidity_value);
+        pressureTextView = findViewById(R.id.pressure_value);
+        windDirectionTextView = findViewById(R.id.wind_direction_text_view);
+        visibilityTextView = findViewById(R.id.visibility_value);
+        weatherConTextView = findViewById(R.id.weather_condition);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+        weatherIcon = findViewById(R.id.weather_icon);
         prevButton = findViewById(R.id.prev_button);
         nextButton = findViewById(R.id.next_button);
     }
@@ -101,13 +116,38 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
 
     private void setupObservers() {
         weatherViewModel.getCurrentWeather().observe(this, this::updateCurrentWeather);
-        weatherViewModel.getWeatherForecast().observe(this, this::updateWeatherForecast);
+        weatherViewModel.getWeatherForecast().observe(this, forecasts -> {
+            CurrentWeather currentWeather = weatherViewModel.getCurrentWeather().getValue();
+            if (currentWeather != null) {
+                updateWeatherForecast(forecasts, currentWeather);
+            }
+        });
 //        weatherViewModel.getErrorMessage().observe(this, this::handleError);
+    }
+
+    private void updateWeatherForecast(List<Forecast> forecasts, CurrentWeather currentWeather) {
+        if (forecasts != null && !forecasts.isEmpty()) {
+            forecastAdapter = new ForecastAdapter(forecasts, this);
+            forecastRecyclerView.setAdapter(forecastAdapter);
+            // Use the weather condition of the first forecast item
+            String todayWeatherCondition = weatherRepository.fetchTodayWeatherCondition(forecasts);
+            currentWeather.setWeatherCondition(todayWeatherCondition);
+            weatherConTextView.setText(todayWeatherCondition);
+
+            int weatherIconResId = WeatherIconUtils.getWeatherIconResId(todayWeatherCondition, currentWeather.getTemperature());
+            weatherIcon.setImageResource(weatherIconResId);
+
+            Log.d(TAG, "updateWeatherForecast: setweathercondition: " + currentWeather.getWeatherCondition());
+        } else {
+            Log.d("MainActivity", "No forecast data available");
+        }
     }
 
     private void setupListeners() {
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
-        forecastRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Set the layout manager to a horizontal LinearLayoutManager
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        forecastRecyclerView.setLayoutManager(layoutManager);
     }
 
     private void handleSelectedLocation() {
@@ -131,20 +171,14 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private void updateCurrentWeather(CurrentWeather currentWeather) {
         if (currentWeather != null) {
             greetingTextView.setText(DateUtils.getGreeting());
-            dayTextView.setText(currentWeather.getDate());
-            dayTextView.setText(currentWeather.getDayOfWeek());
+            dateTextView.setText(DateUtils.getCurrentDate());
+            Log.d(TAG, "updateCurrentWeather: date" + currentWeather.getDate());
             temperatureTextView.setText(String.format("%.1f°C", currentWeather.getTemperature()));
-            temperatureFahTextView.setText(String.format("%.1f°C", currentWeather.getTemperatureFahrenheit()));
+            humidityTextView.setText(currentWeather.getHumidity());
+            pressureTextView.setText(currentWeather.getPressure());
+            windDirectionTextView.setText(String.format("%1s: %s ",currentWeather.getWindDirection(), currentWeather.getWindSpeed()));
+            visibilityTextView.setText(currentWeather.getVisibility());
             locationTextView.setText(Location.getDefaultLocationName());
-        }
-    }
-
-    private void updateWeatherForecast(List<Forecast> forecasts) {
-        if (forecasts != null && !forecasts.isEmpty()) {
-            forecastAdapter = new ForecastAdapter(forecasts, this);
-            forecastRecyclerView.setAdapter(forecastAdapter);
-        } else {
-            Log.d("MainActivity", "No forecast data available");
         }
     }
 
@@ -156,19 +190,25 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.navigation_home) {
-            // Handle home item click
+            //No need to start a new activity
             return true;
         } else if (itemId == R.id.navigation_search) {
-            startActivity(new Intent(MainActivity.this, SearchActivity.class));
+            Intent searchIntent = new Intent(MainActivity.this, SearchActivity.class);
+            searchIntent.putExtra("selectedMenuItem", R.id.navigation_search);
+            startActivity(searchIntent);
+            finish();
             return true;
         } else if (itemId == R.id.navigation_map) {
-            startActivity(new Intent(MainActivity.this, MapActivity.class));
-            return true;
-        } else if (itemId == R.id.navigation_settings) {
-            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
+            mapIntent.putExtra("selectedMenuItem", R.id.navigation_map);
+            startActivity(mapIntent);
+            finish();
             return true;
         } else if (itemId == R.id.navigation_compare) {
-            startActivity(new Intent(MainActivity.this, WeatherComparisonActivity.class));
+            Intent compareIntent = new Intent(MainActivity.this, WeatherComparisonActivity.class);
+            compareIntent.putExtra("selectedMenuItem", R.id.navigation_compare);
+            startActivity(compareIntent);
+            finish();
             return true;
         }
         return false;
@@ -176,7 +216,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
 
     private void setupLocationCarousel() {
         List<Location> locations = Location.getPopularLocations();
-        LocationAdapter locationAdapter = new LocationAdapter(locations, this::onLocationClicked);
+        weatherRepository = new WeatherRepository(getApplicationContext());
+        LocationAdapter locationAdapter = new LocationAdapter(locations, this::onLocationClicked, weatherRepository);
         RecyclerView locationCarouselRecyclerView = findViewById(R.id.location_recycler_view);
         locationCarouselRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         locationCarouselRecyclerView.setAdapter(locationAdapter);
@@ -204,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
                 int maxPosition = locationCarouselRecyclerView.computeHorizontalScrollRange() - locationCarouselRecyclerView.getWidth();
                 int nextPosition = (currentPosition + locationCarouselRecyclerView.getWidth()) % (maxPosition + locationCarouselRecyclerView.getWidth());
                 locationCarouselRecyclerView.smoothScrollBy(nextPosition - currentPosition, 0);
-                handler.postDelayed(this, 10000); // Adjust the delay as needed (3 seconds in this case)
+                handler.postDelayed(this, 10000);
             }
         };
         handler.postDelayed(runnable, 10000);
@@ -256,10 +297,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     @Override
     public void onBackPressed() {
         if (bottomNavigationView.getSelectedItemId() == R.id.navigation_home) {
-            // If the current destination is the home screen, minimize the app or finish the activity
+            // If the current destination is the home screen, minimize the app
             moveTaskToBack(true);
-            // or
-            // finish();
+
         } else {
             super.onBackPressed();
         }

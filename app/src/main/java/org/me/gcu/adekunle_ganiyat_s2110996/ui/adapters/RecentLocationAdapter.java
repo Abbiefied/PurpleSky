@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
@@ -31,7 +32,7 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
     @NonNull
     @Override
     public RecentLocationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recent_location, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_location, parent, false);
         return new RecentLocationViewHolder(view);
     }
 
@@ -65,11 +66,29 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
             weatherRepository.fetchCurrentWeather(locationId, new WeatherRepository.WeatherCallback<CurrentWeather>() {
                 @Override
                 public void onSuccess(CurrentWeather currentWeather) {
+                    float temperature = currentWeather.getTemperature();
+                    // Fetch today's weather condition
+                    weatherRepository.fetchWeatherForecast(locationId, new WeatherRepository.WeatherCallback<List<Forecast>>() {
+                        @Override
+                        public void onSuccess(List<Forecast> forecastList) {
+                            String todayWeatherCondition = weatherRepository.fetchTodayWeatherCondition(forecastList);
+                            holder.weatherConTextView.setText(todayWeatherCondition);
+                            int iconResId = WeatherIconUtils.getWeatherIconResId(todayWeatherCondition, temperature);
+                            holder.weatherIcon.setImageResource(iconResId);
+
+                        }
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            // Handle failure scenario
+                            Log.e("RecentLocationAdapter", "Error fetching today's weather condition: " + errorMessage);
+                        }
+                    });
+
                     AppExecutors.getInstance().mainThread().execute(() -> {
                             holder.temperatureTextView.setText(String.format("%.1f°C", currentWeather.getTemperature()));
                             holder.humidityTextView.setText(currentWeather.getHumidity());
-                            int iconResId = WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature());
-                            holder.weatherIconImageView.setImageResource(iconResId);
+                            holder.windSpeedTextView.setText(currentWeather.getWindSpeed());
+                            holder.pressureTextView.setText(currentWeather.getPressure());
                     });
                 }
 
@@ -86,7 +105,10 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
         private TextView locationNameTextView;
         private TextView temperatureTextView;
         private TextView humidityTextView;
-        private ImageView weatherIconImageView;
+        private TextView weatherConTextView;
+        private TextView windSpeedTextView;
+        private TextView pressureTextView;
+        private ImageView weatherIcon;
         private Location location;
 
         public RecentLocationViewHolder(@NonNull View itemView) {
@@ -94,7 +116,10 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
             locationNameTextView = itemView.findViewById(R.id.location_name_text_view);
             temperatureTextView = itemView.findViewById(R.id.temperature_text_view);
             humidityTextView = itemView.findViewById(R.id.humidity_text_view);
-            weatherIconImageView = itemView.findViewById(R.id.weather_icon_imageview);
+            pressureTextView = itemView.findViewById(R.id.pressure_text_view);
+            windSpeedTextView = itemView.findViewById(R.id.wind_speed_text_view);
+            weatherConTextView =itemView.findViewById(R.id.weather_condition);
+            weatherIcon = itemView.findViewById(R.id.weatherIcon);
             itemView.setOnClickListener(this);
         }
 
@@ -104,7 +129,10 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
                     locationNameTextView.setText(location.getName());
                     temperatureTextView.setText("");
                     humidityTextView.setText("");
-                    weatherIconImageView.setImageDrawable(null);
+                    pressureTextView.setText("");
+                    weatherConTextView.setText("");
+                    windSpeedTextView.setText("");
+                    weatherIcon.setImageDrawable(null);
 
             } else {
                 // Handle the case when the location is null
@@ -117,8 +145,17 @@ public class RecentLocationAdapter extends RecyclerView.Adapter<RecentLocationAd
                 if (humidityTextView != null) {
                     humidityTextView.setText("");
                 }
-                if (weatherIconImageView != null) {
-                    weatherIconImageView.setImageDrawable(null);
+                if (pressureTextView != null) {
+                    pressureTextView.setText("");
+                }
+                if (windSpeedTextView != null) {
+                    windSpeedTextView.setText("");
+                }
+                if (weatherConTextView != null) {
+                    weatherConTextView.setText("");
+                }
+                if (weatherIcon != null) {
+                    weatherIcon.setImageDrawable(null);
                 }
             }
         }

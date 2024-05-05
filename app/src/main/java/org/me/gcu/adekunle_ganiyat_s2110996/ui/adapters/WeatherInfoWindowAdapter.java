@@ -42,15 +42,21 @@ public class WeatherInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
             if (customMarker.isWeatherMarker()) {
                 CurrentWeather currentWeather = customMarker.getCurrentWeather();
 
-                TextView tvLocationName = view.findViewById(R.id.tv_location_name);
+                TextView tvWeatherCondition = view.findViewById(R.id.tv_weather_condition);
                 TextView tvTemperature = view.findViewById(R.id.tv_temperature);
                 TextView tvHumidity = view.findViewById(R.id.tv_humidity);
                 TextView tvWindSpeed = view.findViewById(R.id.tv_wind_speed);
+                TextView tvDayOfWeek = view.findViewById(R.id.tv_day_of_week);
+                TextView tvPressure = view.findViewById(R.id.tv_pressure);
+                TextView tvVisibility = view.findViewById(R.id.tv_visibility);
 
-                tvLocationName.setText(currentWeather.getTitle()); // Use the title from the CurrentWeather object
+                tvWeatherCondition.setText(currentWeather.getWeatherCondition());
+                tvDayOfWeek.setText(currentWeather.getDate());
                 tvTemperature.setText("Temperature: " + currentWeather.getTemperature() + "°C");
                 tvHumidity.setText("Humidity: " + currentWeather.getHumidity());
                 tvWindSpeed.setText("Wind Speed: " + currentWeather.getWindSpeed());
+                tvPressure.setText("Pressure: " + currentWeather.getPressure());
+                tvVisibility.setText("Visibility: " + currentWeather.getVisibility());
             }
         }
     }

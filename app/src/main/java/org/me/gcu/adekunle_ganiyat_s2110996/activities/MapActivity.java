@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.Log;
@@ -177,12 +178,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(customMarker.getPosition())
                 .title(customMarker.isWeatherMarker() ? "Weather" : "Air Quality");
-
-        // Customize the marker based on the type of data it contains
         if (customMarker.isWeatherMarker()) {
-            // Set weather icon
-            int iconResId = WeatherIconUtils.getWeatherIconResId(customMarker.getCurrentWeather().getTemperature());
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(iconResId));
+            String todayWeatherCondition = customMarker.getCurrentWeather().getWeatherCondition();
+            int iconResId = WeatherIconUtils.getWeatherIconResIdBasedOnTemperature(customMarker.getCurrentWeather().getTemperature());
+            Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), iconResId);
+            int scaleFactor = 2;
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.getWidth() * scaleFactor, originalBitmap.getHeight() * scaleFactor, true);
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(scaledBitmap));
         } else {
             // Set air quality icon
             BitmapDescriptor airQualityIcon = BitmapDescriptorFactory.fromBitmap(createAirQualityMarkerIcon(customMarker.getAirQualityData()));
@@ -290,6 +292,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // Fetch and add air quality markers for the visible bounds
             LatLngBounds bounds = googleMap.getProjection().getVisibleRegion().latLngBounds;
             fetchAirQualityForBounds(bounds, airQualityMarkers);
+
         } else {
             Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();
         }
@@ -339,5 +342,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return false;
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
+        super.onBackPressed();
     }
 }

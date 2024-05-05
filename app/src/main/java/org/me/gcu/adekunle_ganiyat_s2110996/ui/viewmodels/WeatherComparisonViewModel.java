@@ -36,8 +36,6 @@ public class WeatherComparisonViewModel extends AndroidViewModel {
     }
 
     // Getters for LiveData objects
-
-
     public WeatherRepository getWeatherRepository() {
         return weatherRepository;
     }

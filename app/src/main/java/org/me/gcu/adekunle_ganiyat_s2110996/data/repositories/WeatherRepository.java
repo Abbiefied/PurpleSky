@@ -58,6 +58,14 @@ public class WeatherRepository {
         });
     }
 
+    public String fetchTodayWeatherCondition(List<Forecast> forecasts) {
+        if (forecasts != null && !forecasts.isEmpty()) {
+            Forecast firstForecast = forecasts.get(0);
+            return firstForecast.getTodayWeatherCondition();
+        }
+        return null;
+    }
+
     public void fetchCurrentWeather(String locationId, WeatherCallback<CurrentWeather> callback) {
         appExecutors.networkIO().execute(() -> {
             networkDataSource.fetchCurrentWeather(locationId, new NetworkDataSource.WeatherCallback<CurrentWeather>() {
