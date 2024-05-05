@@ -1,3 +1,9 @@
+//
+// Name                 Ganiyat Adekunle
+// Student ID           S2110996
+// Programme of Study   Computing
+//
+
 package org.me.gcu.adekunle_ganiyat_s2110996.ui.fragments;
 
 import android.os.Bundle;
@@ -18,6 +24,7 @@ import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 public class DetailedForecastFragment extends Fragment {
 
     private static final String ARG_FORECAST = "forecast";
+    private static final String ARG_LOCATION_NAME = "locationName";
 
     private TextView dateTextView;
     private TextView dayOfWeekTextView;
@@ -29,8 +36,6 @@ public class DetailedForecastFragment extends Fragment {
     private TextView windSpeedTextView;
     private TextView weatherConditionTextView;
     private TextView minTempTextView;
-    private TextView sunriseTextView;
-    private TextView sunsetTextView;
     private TextView uvTextView;
     private TextView pollutionTextView;
     private TextView locationTextView;
@@ -40,10 +45,11 @@ public class DetailedForecastFragment extends Fragment {
         // Default constructor
     }
 
-    public static DetailedForecastFragment newInstance(Forecast forecast) {
+    public static DetailedForecastFragment newInstance(Forecast forecast, String locationName) {
         DetailedForecastFragment fragment = new DetailedForecastFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARG_FORECAST, forecast);
+        args.putString(ARG_LOCATION_NAME, locationName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -79,6 +85,11 @@ public class DetailedForecastFragment extends Fragment {
             if (forecast != null) {
                 displayForecastDetails(forecast);
             }
+
+            String locationName = getArguments().getString(ARG_LOCATION_NAME);
+            if (locationName != null) {
+                locationTextView.setText(locationName);
+            }
         }
     }
 
@@ -97,7 +108,6 @@ public class DetailedForecastFragment extends Fragment {
         pollutionTextView.setText(forecast.getPollution());
         int weatherIconResId = WeatherIconUtils.getWeatherIconResId(forecast.getWeatherCondition(), forecast.getMaxTemperatureCelcius());
         weatherIcon.setImageResource(weatherIconResId);
-//        locationTextView.setText(forecast);
 
 
     }

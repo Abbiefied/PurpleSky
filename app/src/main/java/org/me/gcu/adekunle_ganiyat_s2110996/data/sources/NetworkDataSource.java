@@ -1,3 +1,9 @@
+//
+// Name                 Ganiyat Adekunle
+// Student ID           S2110996
+// Programme of Study   Computing
+//
+
 package org.me.gcu.adekunle_ganiyat_s2110996.data.sources;
 
 import android.util.Log;
@@ -137,7 +143,7 @@ public class NetworkDataSource {
     }
 
 
-    private AirQualityData parseAirQualityJson(String json) {
+    public AirQualityData parseAirQualityJson(String json) {
         AirQualityData airQualityData = new AirQualityData();
 
         try {

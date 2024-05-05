@@ -21,4 +21,7 @@
     <string name="day">Day of week</string>
     <string name="expand_collapse_icon">Expand collapse icon</string>
     <string name="pollutants">pollutants</string>
+    <string name="title_compare">compare</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

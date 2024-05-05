@@ -1,3 +1,9 @@
+//
+// Name                 Ganiyat Adekunle
+// Student ID           S2110996
+// Programme of Study   Computing
+//
+
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
 import android.content.Intent;
@@ -42,6 +48,7 @@ public class DetailedForecastActivity extends AppCompatActivity {
             if (forecast != null) {
                 showDetailedForecastFragment(forecast);
             }
+
         }
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -73,7 +80,8 @@ public class DetailedForecastActivity extends AppCompatActivity {
     }
 
     private void showDetailedForecastFragment(Forecast forecast) {
-        DetailedForecastFragment fragment = DetailedForecastFragment.newInstance(forecast);
+        String locationName = getIntent().getStringExtra("locationName");
+        DetailedForecastFragment fragment = DetailedForecastFragment.newInstance(forecast, locationName);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
