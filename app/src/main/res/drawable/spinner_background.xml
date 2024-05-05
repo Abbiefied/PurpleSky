@@ -9,7 +9,7 @@
                     <padding android:right="8dp" />
                 </shape>
             </item>
-            <item android:drawable="@drawable/plus" android:gravity="end|center_vertical" />
+            <item android:drawable="@drawable/down" android:gravity="end|center_vertical" />
         </layer-list>
     </item>
 </selector>

@@ -14,11 +14,13 @@ import android.widget.RemoteViews;
 import androidx.core.app.NotificationCompat;
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.DateUtils;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 
+import java.util.List;
 import java.util.Locale;
 
 public class WeatherNotificationService extends Service {
@@ -48,45 +50,57 @@ public class WeatherNotificationService extends Service {
         weatherRepository.fetchCurrentWeather(locationId, new WeatherRepository.WeatherCallback<CurrentWeather>() {
             @Override
             public void onSuccess(CurrentWeather currentWeather) {
-                String temperature = String.format(Locale.getDefault(), "%.0f°", currentWeather.getTemperature());
-                String condition = currentWeather.getWeatherCondition();
+                float temperature =  currentWeather.getTemperature();
                 String locationName = Location.getDefaultLocationName(); // Get the location name
-
-                // Get the weather icon resource ID based on the temperature
-                int weatherIconResId = WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature());
-
-                // Get the current timestamp for the last refresh time
-                String lastRefreshTime = DateUtils.getCurrentTime();
 
                 // Create a remote view for the notification layout
                 RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.notification_layout);
-                remoteViews.setTextViewText(R.id.app_name_text_view, getString(R.string.app_name)); // Set the app name
-                remoteViews.setTextViewText(R.id.temperature_text_view, temperature);
-                remoteViews.setTextViewText(R.id.condition_text_view, condition);
-                remoteViews.setTextViewText(R.id.location_text_view, locationName);
-                remoteViews.setImageViewResource(R.id.weather_icon_image_view, weatherIconResId);
-                remoteViews.setTextViewText(R.id.last_refresh_time_text_view, lastRefreshTime); // Set the last refresh time
 
-                // Create a pending intent for the refresh action
-                Intent refreshIntent = new Intent(getApplicationContext(), WeatherNotificationService.class);
-                refreshIntent.setAction("REFRESH_WEATHER");
-                PendingIntent refreshPendingIntent = PendingIntent.getService(getApplicationContext(), 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                remoteViews.setOnClickPendingIntent(R.id.refresh_image_view, refreshPendingIntent);
+                // Fetch today's weather condition
+                weatherRepository.fetchWeatherForecast(locationId, new WeatherRepository.WeatherCallback<List<Forecast>>() {
+                    @Override
+                    public void onSuccess(List<Forecast> forecastList) {
+                        String todayWeatherCondition = weatherRepository.fetchTodayWeatherCondition(forecastList);
+                        remoteViews.setTextViewText(R.id.condition_text_view, todayWeatherCondition);
+                        int weatherIconResId = WeatherIconUtils.getWeatherIconResId(todayWeatherCondition, temperature);
+                        // Get the current timestamp for the last refresh time
+                        String lastRefreshTime = DateUtils.getCurrentTime();
+                        String temperatureString = String.format(Locale.getDefault(), "%.0f°C", temperature);
 
-                // Create a pending intent for the notification click
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        remoteViews.setTextViewText(R.id.app_name_text_view, getString(R.string.app_name)); // Set the app name
+                        remoteViews.setTextViewText(R.id.temperature_text_view, temperatureString);
+                        remoteViews.setTextViewText(R.id.condition_text_view, todayWeatherCondition);
+                        remoteViews.setTextViewText(R.id.location_text_view, locationName);
+                        remoteViews.setImageViewResource(R.id.weather_icon_image_view, weatherIconResId);
+                        remoteViews.setTextViewText(R.id.last_refresh_time_text_view, lastRefreshTime); // Set the last refresh time
 
-                // Build the notification with the custom layout
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                        .setSmallIcon(R.drawable.tornado)
-                        .setCustomContentView(remoteViews)
-                        .setContentIntent(pendingIntent)
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                        .setAutoCancel(true);
+                        // Create a pending intent for the refresh action
+                        Intent refreshIntent = new Intent(getApplicationContext(), WeatherNotificationService.class);
+                        refreshIntent.setAction("REFRESH_WEATHER");
+                        PendingIntent refreshPendingIntent = PendingIntent.getService(getApplicationContext(), 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        remoteViews.setOnClickPendingIntent(R.id.refresh_image_view, refreshPendingIntent);
 
-                // Show the notification
-                startForeground(NOTIFICATION_ID, builder.build());
+                        // Create a pending intent for the notification click
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                        // Build the notification with the custom layout
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                                .setSmallIcon(R.drawable.tornado)
+                                .setCustomContentView(remoteViews)
+                                .setContentIntent(pendingIntent)
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                .setAutoCancel(true);
+
+                        // Show the notification
+                        startForeground(NOTIFICATION_ID, builder.build());
+                    }
+
+                    @Override
+                    public void onFailure(String message) {
+                        // Handle the failure scenario
+                    }
+                });
             }
 
             @Override

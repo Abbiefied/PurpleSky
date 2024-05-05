@@ -17,9 +17,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Adekunle_Ganiyat_S2110996"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="31">
-
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".activities.SettingsActivity2"
+            android:exported="false"
+            android:label="@string/title_activity_settings2" />
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -93,6 +95,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />

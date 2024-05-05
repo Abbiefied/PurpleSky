@@ -4,4 +4,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="purple">#612FAB</color>
     <color name="indigo">#4B0076</color>
+    <color name="purplish">#48139D</color>
+    <color name="darkest_lilac">#E6432B65</color>
+    <color name="transparent_purple">#66BB86FC</color>
+    <color name="transparent">#00FCFAFA</color>
 </resources>

@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <Preference
         android:key="refresh_data"
         android:title="Refresh Data"
         app:icon="@drawable/sync"
-        android:summary="Refresh the weather data" />
+        android:summary="Refresh the weather data"
+        />
 
     <Preference
         android:key="data_refresh_frequency"
         android:title="Data Refresh Frequency"
-        android:summary="Set the time for weather data refresh" />
+        android:summary="Set the time for weather data refresh"
+        />
 
     <Preference
         android:key="notifications"

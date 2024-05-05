@@ -4,13 +4,20 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
@@ -30,10 +37,21 @@ public class SearchActivity extends AppCompatActivity implements SearchAdapter.O
     private SearchAdapter searchAdapter;
     private RecentLocationAdapter recentLocationAdapter;
 
+    private BottomNavigationView bottomNavigationView;
+
+    private Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Enable the back button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         searchViewModel = new ViewModelProvider(this).get(SearchViewModel.class);
 
@@ -87,6 +105,40 @@ public class SearchActivity extends AppCompatActivity implements SearchAdapter.O
             searchAdapter.updateData(locations);
         });
         setupObservers();
+
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        int selectedMenuItem = getIntent().getIntExtra("selectedMenuItem", R.id.navigation_search);
+        bottomNavigationView.setSelectedItemId(selectedMenuItem);
+        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.navigation_home) {
+                    Intent homeIntent = new Intent(SearchActivity.this, MainActivity.class);
+                    homeIntent.putExtra("selectedMenuItem", R.id.navigation_home);
+                    startActivity(homeIntent);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_search) {
+                    //No need to start a new activity
+                    return true;
+                } else if (itemId == R.id.navigation_map) {
+                    Intent mapIntent = new Intent(SearchActivity.this, MapActivity.class);
+                    mapIntent.putExtra("selectedMenuItem", R.id.navigation_map);
+                    startActivity(mapIntent);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_compare) {
+                    Intent compareIntent = new Intent(SearchActivity.this, WeatherComparisonActivity.class);
+                    compareIntent.putExtra("selectedMenuItem", R.id.navigation_compare);
+                    startActivity(compareIntent);
+                    finish();
+                    return true;
+                }
+                return false;
+            }
+        });
+
     }
 
     private void setupObservers() {
@@ -118,5 +170,21 @@ public class SearchActivity extends AppCompatActivity implements SearchAdapter.O
     protected void onResume() {
         super.onResume();
         searchViewModel.fetchRecentLocations();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
+        super.onBackPressed(); // Call the superclass implementation
+    }
+
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

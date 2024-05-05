@@ -130,6 +130,7 @@ public class NetworkUtils {
                     // Extract date
                     String date = pubDate.split(",")[1].trim();
                     currentWeather.setDate(date);
+                    Log.d(TAG, "parseCurrentWeatherXml: date " + date);
                 }
             } else if (eventType == XmlPullParser.START_TAG && "description".equals(parser.getName())) {
                 if (currentWeather != null) {
@@ -223,6 +224,7 @@ public class NetworkUtils {
                         // Extract day of the week
                         String dayOfWeek = title.split(":")[0].trim();
                         forecast.setDayOfWeek(dayOfWeek);
+                        Log.d(TAG, "parseForecastXml: day of week " + dayOfWeek);
 
                         // Extract weather condition
                         String weatherCondition = title.split(":")[1].split(",")[0].trim();
@@ -265,15 +267,16 @@ public class NetworkUtils {
                                     break;
                                 case "Pollution":
                                     forecast.setPollution(value);
+                                    Log.d(TAG, "parseForecastXml: pollution " + value);
                                     break;
                                 case "Sunrise":
-                                    forecast.setSunrise(value);
-                                    break;
+                                    forecast.setSunrise(parseSunriseSunset(value));
+                                break;
                                 case "Sunset":
-                                    forecast.setSunset(value);
+                                    forecast.setSunset(parseSunriseSunset(value));
                                     break;
                             }
-                        }
+                        } Log.d(TAG, "parseForecastXml: sunset " + forecast.getSunrise());
                     }
                 }
             } else if (eventType == XmlPullParser.START_TAG && "pubDate".equals(parser.getName())) {
@@ -317,5 +320,14 @@ public class NetworkUtils {
         }
 
         return forecastList;
+    }
+
+    private static String parseSunriseSunset(String value) {
+        // Example value: "05:27 BST"
+        String[] parts = value.split(" ");
+        if (parts.length == 2) {
+            return parts[0]; // Return the time part
+        }
+        return value; // Return the original value if the format is not as expected
     }
 }

@@ -1,10 +1,14 @@
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -15,11 +19,14 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.AirQualityData;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.sources.NetworkDataSource;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.viewmodels.WeatherComparisonViewModel;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.AppExecutors;
@@ -56,13 +63,28 @@ public class WeatherComparisonActivity extends AppCompatActivity {
     private TextView windTextView2;
     private TextView airQualityTextView1;
     private TextView airQualityTextView2;
-    private TextView forecastTextView1;
-    private TextView forecastTextView2;
+    private TextView weatherConTextView1;
+    private TextView weatherConTextView2;
     private TextView comparisonSummaryTextView;
+    private WeatherRepository weatherRepository;
+    private String todayWeatherCondition1;
+    private String todayWeatherCondition2;
+    private BottomNavigationView bottomNavigationView;
+    private Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather_comparison);
+
+        weatherRepository = new WeatherRepository(getApplicationContext());
+
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Enable the back button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         viewModel = new ViewModelProvider(this).get(WeatherComparisonViewModel.class);
 
@@ -94,8 +116,8 @@ public class WeatherComparisonActivity extends AppCompatActivity {
         airQualityTextView1 = findViewById(R.id.air_quality_text_view_1);
         airQualityTextView2 = findViewById(R.id.air_quality_text_view_2);
         comparisonSummaryTextView = findViewById(R.id.comparison_summary_text_view);
-//        forecastTextView1 = findViewById(R.id.forecast_text_view_1);
-//        forecastTextView2 = findViewById(R.id.forecast_text_view_2);
+        weatherConTextView1 = findViewById(R.id.weatherCon_text_view_1);
+        weatherConTextView2 = findViewById(R.id.weatherCon_text_view_2);
 
 
         // Apply fade-in animation
@@ -163,13 +185,38 @@ public class WeatherComparisonActivity extends AppCompatActivity {
             }
         });
 
+        viewModel.getWeatherForecast1().observe(this, forecastList -> {
+            if (forecastList !=null) {
+                weatherForecast1 = forecastList;
+                Forecast today1 = weatherForecast1.get(0);
+                float temperature1 = today1.getMaxTemperatureCelcius();
+
+                todayWeatherCondition1 = weatherRepository.fetchTodayWeatherCondition(forecastList);
+                weatherConTextView1.setText(todayWeatherCondition1);
+                int weatherIconResId = WeatherIconUtils.getWeatherIconResId(todayWeatherCondition1, temperature1);
+                weatherIcon1.setImageResource(weatherIconResId);
+            }
+        });
+
+        viewModel.getWeatherForecast2().observe(this, forecastList -> {
+            if (forecastList !=null) {
+                weatherForecast2 = forecastList;
+                Forecast today2 = weatherForecast1.get(0);
+                float temperature2 = today2.getMaxTemperatureCelcius();
+
+                todayWeatherCondition2 = weatherRepository.fetchTodayWeatherCondition(forecastList);
+                weatherConTextView2.setText(todayWeatherCondition2);
+                int weatherIconResId = WeatherIconUtils.getWeatherIconResId(todayWeatherCondition2, temperature2);
+                weatherIcon2.setImageResource(weatherIconResId);
+            }
+        });
+
         // Observe LiveData objects and update UI
         viewModel.getCurrentWeather1().observe(this, currentWeather -> {
             if (currentWeather != null) {
                 currentWeather1 = currentWeather;
-                weatherIcon1.setImageResource(WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature()));
                 temperatureTextView1.setText(String.format(Locale.getDefault(), "%.1f°C", currentWeather.getTemperature()));
-                humidityTextView1.setText(String.format(Locale.getDefault(), "Humidity: %s%%", currentWeather.getHumidity()));
+                humidityTextView1.setText(String.format(Locale.getDefault(), "Humidity: ", currentWeather.getHumidity()));
                 windTextView1.setText(String.format(Locale.getDefault(), "Wind: %s", currentWeather.getWindSpeed()));
                 checkAndGenerateComparisonSummary();
             }
@@ -178,9 +225,8 @@ public class WeatherComparisonActivity extends AppCompatActivity {
         viewModel.getCurrentWeather2().observe(this, currentWeather -> {
             if (currentWeather != null) {
                 currentWeather2 = currentWeather;
-                weatherIcon2.setImageResource(WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature()));
                 temperatureTextView2.setText(String.format(Locale.getDefault(), "%.1f°C", currentWeather.getTemperature()));
-                humidityTextView2.setText(String.format(Locale.getDefault(), "Humidity: %s%%", currentWeather.getHumidity()));
+                humidityTextView2.setText(String.format(Locale.getDefault(), "Humidity: ", currentWeather.getHumidity()));
                 windTextView2.setText(String.format(Locale.getDefault(), "Wind: %s", currentWeather.getWindSpeed()));
                 checkAndGenerateComparisonSummary();
             }
@@ -189,7 +235,7 @@ public class WeatherComparisonActivity extends AppCompatActivity {
         viewModel.getAirQualityData1().observe(this, airQualityData -> {
             if (airQualityData != null) {
                 airQualityData1 = airQualityData;
-                airQualityTextView1.setText(String.format(Locale.getDefault(), "AQI: %s", airQualityData.getAirQualityIndex()));
+                airQualityTextView1.setText(formatAirQualityData(airQualityData1));
                 checkAndGenerateComparisonSummary();
             }
         });
@@ -202,21 +248,38 @@ public class WeatherComparisonActivity extends AppCompatActivity {
             }
         });
 
-//
-//        viewModel.getWeatherForecast1().observe(this, weatherForecast -> {
-//            if (weatherForecast != null) {
-//                weatherForecast1 = weatherForecast;
-//                forecastTextView1.setText(formatWeatherForecast(weatherForecast));
-//            }
-//        });
-//
-//        viewModel.getWeatherForecast2().observe(this, weatherForecast -> {
-//            if (weatherForecast != null) {
-//                weatherForecast2 = weatherForecast;
-//                forecastTextView2.setText(formatWeatherForecast(weatherForecast));
-//            }
-//        });
-
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        int selectedMenuItem = getIntent().getIntExtra("selectedMenuItem", R.id.navigation_compare);
+        bottomNavigationView.setSelectedItemId(selectedMenuItem);
+        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.navigation_home) {
+                    Intent homeIntent = new Intent(WeatherComparisonActivity.this, MainActivity.class);
+                    homeIntent.putExtra("selectedMenuItem", R.id.navigation_home);
+                    startActivity(homeIntent);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_search) {
+                    Intent searchIntent = new Intent(WeatherComparisonActivity.this, MapActivity.class);
+                    searchIntent.putExtra("selectedMenuItem", R.id.navigation_map);
+                    startActivity(searchIntent);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_map) {
+                    Intent mapIntent = new Intent(WeatherComparisonActivity.this, MapActivity.class);
+                    mapIntent.putExtra("selectedMenuItem", R.id.navigation_map);
+                    startActivity(mapIntent);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_compare) {
+                    //No need to start a new activity
+                    return true;
+                }
+                return false;
+            }
+        });
 
     }
 
@@ -230,7 +293,7 @@ public class WeatherComparisonActivity extends AppCompatActivity {
     }
     private void checkAndGenerateComparisonSummary() {
         if (currentWeather1 != null && currentWeather2 != null &&
-//                weatherForecast1 != null && weatherForecast2 != null &&
+                weatherForecast1 != null && weatherForecast2 != null &&
                 airQualityData1 != null && airQualityData2 != null) {
             generateComparisonSummary(currentWeather1, currentWeather2, weatherForecast1, weatherForecast2, airQualityData1, airQualityData2);
         }
@@ -240,31 +303,6 @@ public class WeatherComparisonActivity extends AppCompatActivity {
         viewModel.fetchWeatherData(location1, location2);
     }
 
-    private String formatCurrentWeather(CurrentWeather currentWeather) {
-        // Format the current weather data for display
-        StringBuilder builder = new StringBuilder();
-        builder.append("Temperature: ").append(currentWeather.getTemperature()).append("\n");
-        builder.append("Humidity: ").append(currentWeather.getHumidity()).append("\n");
-        builder.append("Wind Speed: ").append(currentWeather.getWindSpeed()).append("\n");
-        builder.append("Pressure: ").append(currentWeather.getPressure()).append("\n");
-        return builder.toString();
-    }
-
-//    private String formatWeatherForecast(List<Forecast> weatherForecast) {
-//        // Format the weather forecast data for display
-//        StringBuilder builder = new StringBuilder();
-//        for (Forecast forecast : weatherForecast) {
-//            builder.append("Date: ").append(forecast.getDate()).append("\n");
-//            builder.append("Temperature: ").append(forecast.getMaxTemperatureCelcius()).append("°C / ")
-//                    .append(forecast.getMaxTemperatureFahrenheit()).append("°F\n");
-//            builder.append("Weather Condition: ").append(forecast.getWeatherCondition()).append("\n");
-//            builder.append("Wind Speed: ").append(forecast.getWindSpeed()).append(" mph\n");
-//            builder.append("Pressure: ").append(forecast.getPressure()).append(" mb\n");
-//            builder.append("Humidity: ").append(forecast.getHumidity()).append("%\n");
-//            builder.append("\n");
-//        }
-//        return builder.toString();
-//    }
 
     private String formatAirQualityData(AirQualityData airQualityData) {
         // Format the air quality data for display
@@ -360,8 +398,8 @@ public class WeatherComparisonActivity extends AppCompatActivity {
 
             // Compare forecast weather
             if (weatherForecast1 != null && weatherForecast2 != null && !weatherForecast1.isEmpty() && !weatherForecast2.isEmpty()) {
-                String weatherCondition1 = weatherForecast1.get(0).getWeatherCondition();
-                String weatherCondition2 = weatherForecast2.get(0).getWeatherCondition();
+                String weatherCondition1 = weatherRepository.fetchTodayWeatherCondition(weatherForecast1);
+                String weatherCondition2 = weatherRepository.fetchTodayWeatherCondition(weatherForecast2);
                 float maxTemperature1 = weatherForecast1.get(0).getMaxTemperatureCelcius();
                 float maxTemperature2 = weatherForecast2.get(0).getMaxTemperatureCelcius();
                 String location1 = locationSpinner1.getSelectedItem().toString();
@@ -386,5 +424,21 @@ public class WeatherComparisonActivity extends AppCompatActivity {
         for (View view : views) {
             view.startAnimation(fadeInAnimation);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
+        super.onBackPressed();
+    }
+
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

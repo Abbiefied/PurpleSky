@@ -10,11 +10,13 @@ import android.widget.RemoteViews;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
+import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Forecast;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.Location;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.repositories.WeatherRepository;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.DateUtils;
 import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 
+import java.util.List;
 import java.util.Locale;
 
 public class WeatherWidgetProvider extends AppWidgetProvider {
@@ -39,18 +41,19 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         // Update the widget with weather data
         WeatherRepository weatherRepository = new WeatherRepository(context);
         String locationId = Location.getDefaultLocationId();
-        weatherRepository.fetchCurrentWeather(locationId, new WeatherRepository.WeatherCallback<CurrentWeather>() {
+        weatherRepository.fetchWeatherForecast(locationId, new WeatherRepository.WeatherCallback<List<Forecast>> () {
             @Override
-            public void onSuccess(CurrentWeather currentWeather) {
-                views.setImageViewResource(R.id.weather_icon, WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature()));
-                views.setTextViewText(R.id.temperature, String.format(Locale.getDefault(), "%.0f°C", currentWeather.getTemperature()));
-                views.setTextViewText(R.id.description, currentWeather.getWeatherCondition());
-                views.setImageViewResource(R.id.weather_icon, WeatherIconUtils.getWeatherIconResId(currentWeather.getTemperature()));
+            public void onSuccess(List<Forecast> forecastList) {
+                Forecast today = forecastList.get(0);
+                String windString = String.format(Locale.getDefault(), "%.0fmph", today.getWindSpeed());
+
+                views.setImageViewResource(R.id.weather_icon, WeatherIconUtils.getWeatherIconResId(today.getWeatherCondition(), today.getMaxTemperatureCelcius()));
+                views.setTextViewText(R.id.temperature, String.format(Locale.getDefault(), "%.0f°C", today.getMaxTemperatureCelcius()));
+                views.setTextViewText(R.id.description, today.getWeatherCondition());
                 views.setTextViewText(R.id.last_update_time, DateUtils.getCurrentTime());
-                views.setTextViewText(R.id.wind_value, currentWeather.getWindSpeed());
-                views.setTextViewText(R.id.humidity_value, currentWeather.getHumidity());
-                views.setTextViewText(R.id.precipitation_value, currentWeather.getPressure());
-                views.setTextViewText(R.id.last_update_time, DateUtils.getCurrentTime());
+                views.setTextViewText(R.id.wind_value, windString);
+                views.setTextViewText(R.id.humidity_value, today.getHumidity());
+                views.setTextViewText(R.id.pressure_value, today.getPressure());
                 views.setTextViewText(R.id.location_name, Location.getLocationNameById(locationId));
 
                 // Create an Intent to launch the app

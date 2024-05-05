@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Observer;
@@ -19,6 +20,8 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreference;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.ui.fragments.HeaderFragment;
@@ -31,10 +34,21 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private String locationId;
 
+    private BottomNavigationView bottomNavigationView;
+
+    private Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Enable the back button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         // Retrieve the locationId from the intent extras
         Intent intent = getIntent();
@@ -70,6 +84,28 @@ public class SettingsActivity extends AppCompatActivity implements
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(mPreferenceChangeListener);
 
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(-1);
+        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.navigation_home) {
+                    startActivity(new Intent(SettingsActivity.this, MainActivity.class));
+                    return true;
+                } else if (itemId == R.id.navigation_search) {
+                    startActivity(new Intent(SettingsActivity.this, SearchActivity.class));
+                    return true;
+                } else if (itemId == R.id.navigation_map) {
+                    startActivity(new Intent(SettingsActivity.this, MapActivity.class));
+                    return true;
+                } else if (itemId == R.id.navigation_compare) {
+                    startActivity(new Intent(SettingsActivity.this, WeatherComparisonActivity.class));
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -216,5 +252,4 @@ public class SettingsActivity extends AppCompatActivity implements
             });
         }
     }
-
 }

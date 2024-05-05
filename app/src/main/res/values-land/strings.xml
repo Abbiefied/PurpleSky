@@ -6,4 +6,19 @@
     <string name="wind">wind</string>
     <string name="weatherCondition">weatherCondition</string>
     <string name="weather_icon_description">Weather Icon</string>
+    <string name="weather_condition">Weather Condition\n</string>
+    <string name="forecast_temperature">forecast temperature\n</string>
+    <string name="uv">UV</string>
+    <string name="pressure_icon">pressure icon</string>
+    <string name="wind_icon">wind icon</string>
+    <string name="humidity_icon">humidity icon</string>
+    <string name="visibility_icon">visibility icon</string>
+    <string name="wind_speed_icon">wind speed icon</string>
+    <string name="pollution_icon">pollution icon</string>
+    <string name="pollution">pollution\n</string>
+    <string name="uv_icon">UV icon</string>
+    <string name="wind_direction">wind direction</string>
+    <string name="day">Day of week</string>
+    <string name="expand_collapse_icon">Expand collapse icon</string>
+    <string name="pollutants">pollutants</string>
 </resources>

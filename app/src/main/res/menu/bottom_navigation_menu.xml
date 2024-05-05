@@ -20,8 +20,4 @@
         android:icon="@drawable/settings_icon"
         android:title="compare" />
 
-    <item
-        android:id="@+id/navigation_settings"
-        android:icon="@drawable/settings_icon"
-        android:title="@string/title_settings" />
 </menu>
