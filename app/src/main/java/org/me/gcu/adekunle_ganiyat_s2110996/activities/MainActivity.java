@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -16,13 +17,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 import org.me.gcu.adekunle_ganiyat_s2110996.R;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
@@ -39,7 +45,7 @@ import org.me.gcu.adekunle_ganiyat_s2110996.utils.WeatherIconUtils;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements ForecastAdapter.OnForecastClickListener {
+public class MainActivity extends AppCompatActivity implements ForecastAdapter.OnForecastClickListener, NavigationView.OnNavigationItemSelectedListener {
 
     private BottomNavigationView bottomNavigationView;
     private ImageButton settingsIcon;
@@ -60,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     private TextView visibilityTextView;
     private TextView weatherConTextView;
     private ImageView weatherIcon;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +85,28 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         setupLocationCarousel();
         scheduleAutoRefresh();
 
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.navigation_view);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         int selectedMenuItem = getIntent().getIntExtra("selectedMenuItem", R.id.navigation_home);
         bottomNavigationView.setSelectedItemId(selectedMenuItem);
+
+        // Set up drawer navigation for landscape orientation
+        if (getResources().getBoolean(R.bool.is_landscape)) {
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+            drawerLayout.addDrawerListener(toggle);
+            toggle.syncState();
+            navigationView.setNavigationItemSelectedListener(this);
+        } else {
+            // Set up bottom navigation for portrait orientation
+            bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+                // Handle bottom navigation item clicks
+                return onNavigationItemSelected(item);
+            });
+        }
 
         //Settings Icon to navigate to Settings Activity
         settingsIcon = findViewById(R.id.settings_icon);
@@ -89,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
             intent.putExtra("locationId", locationId);
             startActivity(intent);
         });
+
 
     }
     private void initViews() {
@@ -184,27 +212,33 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
 
     private void handleError(String errorMessage) {
         Log.e("MainActivity", errorMessage);
-        // Handle error scenario
     }
 
-    private boolean onNavigationItemSelected(@NonNull MenuItem item) {
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.navigation_home) {
-            //No need to start a new activity
+            // Handle home navigation item click
+            if (drawerLayout != null) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
             return true;
         } else if (itemId == R.id.navigation_search) {
+            // Handle search navigation item click
             Intent searchIntent = new Intent(MainActivity.this, SearchActivity.class);
             searchIntent.putExtra("selectedMenuItem", R.id.navigation_search);
             startActivity(searchIntent);
             finish();
             return true;
         } else if (itemId == R.id.navigation_map) {
+            // Handle map navigation item click
             Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
             mapIntent.putExtra("selectedMenuItem", R.id.navigation_map);
             startActivity(mapIntent);
             finish();
             return true;
         } else if (itemId == R.id.navigation_compare) {
+            // Handle compare navigation item click
             Intent compareIntent = new Intent(MainActivity.this, WeatherComparisonActivity.class);
             compareIntent.putExtra("selectedMenuItem", R.id.navigation_compare);
             startActivity(compareIntent);
@@ -269,8 +303,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     @Override
     public void onForecastClick(Forecast forecast) {
         Intent intent = new Intent(MainActivity.this, DetailedForecastActivity.class);
-      intent.putExtra("forecast", forecast);
-       startActivity(intent);
+        intent.putExtra("forecast", forecast);
+        intent.putExtra("locationName", Location.getDefaultLocationName());
+        startActivity(intent);
     }
 
     //Schedule auto refresh
@@ -303,6 +338,40 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.bottom_navigation_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.navigation_home) {
+            //No need to start a new activity
+            return true;
+        } else if (itemId == R.id.navigation_search) {
+            Intent searchIntent = new Intent(MainActivity.this, SearchActivity.class);
+            searchIntent.putExtra("selectedMenuItem", R.id.navigation_search);
+            startActivity(searchIntent);
+            finish();
+            return true;
+        } else if (itemId == R.id.navigation_map) {
+            Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
+            mapIntent.putExtra("selectedMenuItem", R.id.navigation_map);
+            startActivity(mapIntent);
+            finish();
+            return true;
+        } else if (itemId == R.id.navigation_compare) {
+            Intent compareIntent = new Intent(MainActivity.this, WeatherComparisonActivity.class);
+            compareIntent.putExtra("selectedMenuItem", R.id.navigation_compare);
+            startActivity(compareIntent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 }

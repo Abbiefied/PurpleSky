@@ -75,6 +75,7 @@
     <string name="day">Day of week</string>
     <string name="expand_collapse_icon">Expand collapse icon</string>
     <string name="pollutants">pollutants</string>
+    <string name="title_compare">compare</string>
 
     <!-- Refresh Frquency Entries -->
     <string-array name="refresh_frequency_entries">
@@ -107,4 +108,6 @@
         <item>light</item>
         <item>dark</item>
     </string-array>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

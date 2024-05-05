@@ -161,6 +161,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 } else if (tag instanceof AirQualityData) {
                     // If it is an air quality marker, navigate to AirQuality activity
                     AirQualityData airQualityData = (AirQualityData) tag;
+
                     // Navigate to the AirQuality activity
                     Intent intent = new Intent(MapActivity.this, AirQualityActivity.class);
                     intent.putExtra("air_quality_data", airQualityData);

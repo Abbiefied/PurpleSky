@@ -42,6 +42,7 @@ public class DetailedForecastActivity extends AppCompatActivity {
             if (forecast != null) {
                 showDetailedForecastFragment(forecast);
             }
+
         }
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -73,7 +74,8 @@ public class DetailedForecastActivity extends AppCompatActivity {
     }
 
     private void showDetailedForecastFragment(Forecast forecast) {
-        DetailedForecastFragment fragment = DetailedForecastFragment.newInstance(forecast);
+        String locationName = getIntent().getStringExtra("locationName");
+        DetailedForecastFragment fragment = DetailedForecastFragment.newInstance(forecast, locationName);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
