@@ -289,9 +289,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // Zoom the map to the searched location
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10));
 
-            // Fetch and add air quality markers for the visible bounds
-            LatLngBounds bounds = googleMap.getProjection().getVisibleRegion().latLngBounds;
-            fetchAirQualityForBounds(bounds, airQualityMarkers);
+            // Fetch and add air quality marker for the searched location
+            NetworkDataSource networkDataSource = new NetworkDataSource();
+            networkDataSource.fetchAirQualityData(latLng.latitude, latLng.longitude, new NetworkDataSource.WeatherCallback<AirQualityData>() {
+                @Override
+                public void onSuccess(AirQualityData airQualityData) {
+                    Bitmap markerIcon = createAirQualityMarkerIcon(airQualityData);
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(latLng)
+                            .icon(BitmapDescriptorFactory.fromBitmap(markerIcon))
+                            .title("Air Quality");
+
+                    AppExecutors.getInstance().mainThread().execute(() -> {
+                        Marker marker = googleMap.addMarker(markerOptions);
+                        marker.setTag(airQualityData);
+                        airQualityMarkers.add(marker); // Add the marker to the set
+                    });
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    Log.e(TAG, "Failed to fetch air quality data: " + message);
+                }
+            });
 
         } else {
             Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show();

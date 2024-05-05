@@ -26,11 +26,6 @@
         android:title="Add Widget to Homescreen"
         android:summary="Add weather widget to your homescreen" />
 
-    <SwitchPreference
-        android:key="alerts"
-        android:title="Alerts"
-        android:summary="Enable or disable alerts" />
-
     <ListPreference
         android:key="theme"
         android:title="Theme"

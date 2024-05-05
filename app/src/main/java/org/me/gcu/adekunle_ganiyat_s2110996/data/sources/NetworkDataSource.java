@@ -137,7 +137,7 @@ public class NetworkDataSource {
     }
 
 
-    private AirQualityData parseAirQualityJson(String json) {
+    public AirQualityData parseAirQualityJson(String json) {
         AirQualityData airQualityData = new AirQualityData();
 
         try {

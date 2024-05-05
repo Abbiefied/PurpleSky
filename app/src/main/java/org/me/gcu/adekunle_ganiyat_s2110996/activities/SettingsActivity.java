@@ -77,7 +77,7 @@ public class SettingsActivity extends AppCompatActivity implements
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.plus);
+            actionBar.setHomeAsUpIndicator(R.drawable.back);
         }
 
         // Set preference change listeners
