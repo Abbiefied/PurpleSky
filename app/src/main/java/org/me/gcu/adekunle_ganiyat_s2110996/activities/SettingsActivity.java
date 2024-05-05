@@ -1,3 +1,9 @@
+//
+// Name                 Ganiyat Adekunle
+// Student ID           S2110996
+// Programme of Study   Computing
+//
+
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
 import android.appwidget.AppWidgetManager;
@@ -155,7 +161,6 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private void updateNotificationSettings(SharedPreferences sharedPreferences) {
         boolean notificationsEnabled = sharedPreferences.getBoolean("notifications", true);
-        // Update the notification settings in your app
         // Enable or disable notifications based on the user's preference
     }
 

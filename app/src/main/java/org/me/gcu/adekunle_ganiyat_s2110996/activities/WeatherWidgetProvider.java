@@ -1,3 +1,9 @@
+//
+// Name                 Ganiyat Adekunle
+// Student ID           S2110996
+// Programme of Study   Computing
+//
+
 package org.me.gcu.adekunle_ganiyat_s2110996.activities;
 
 import android.app.PendingIntent;
@@ -80,7 +86,6 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         if (intent.getAction().equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, WeatherWidgetProvider.class));
-//            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
         }
     }
 }
