@@ -11,7 +11,6 @@ import com.google.android.gms.maps.model.LatLng;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.AirQualityData;
 import org.me.gcu.adekunle_ganiyat_s2110996.data.models.CurrentWeather;
 
-// CustomMarker.java
 public class CustomMarker {
     private LatLng position;
     private CurrentWeather currentWeather;

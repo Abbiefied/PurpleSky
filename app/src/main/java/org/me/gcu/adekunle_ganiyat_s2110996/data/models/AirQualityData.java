@@ -73,7 +73,7 @@ public class AirQualityData implements Parcelable {
     }
 
     public String getAirQualityIndex() {
-        // Find the desired air quality index (e.g., "uaqi" or "gbr_defra")
+        // Find the desired air quality index
         for (AirQualityIndex index : indexes) {
             if (index.getCode().equals("uaqi")) {
                 return index.getAqiDisplay();

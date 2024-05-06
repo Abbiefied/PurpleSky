@@ -3,6 +3,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@android:id/home"
-        android:icon="@drawable/plus"
+        android:icon="@drawable/back"
         android:title="Back" />
 </menu>

@@ -87,8 +87,4 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
         void onTimeSelected(int hour, int minute);
     }
 
-//    private void refreshWeatherData() {
-//        SettingsViewModel settingsViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
-//        settingsViewModel.refreshWeatherData(requireContext(), Location.getDefaultLocationId());
-//    }
 }

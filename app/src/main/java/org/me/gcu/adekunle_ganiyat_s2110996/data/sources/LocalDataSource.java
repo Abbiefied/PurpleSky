@@ -73,8 +73,6 @@ public class LocalDataSource {
         String json = prefs.getString(KEY_RECENT_LOCATIONS, null);
         if (json != null) {
             Type type = new TypeToken<List<Location>>() {}.getType();
-//            List<Location> recentLocations = gson.fromJson(json, type);
-//            Collections.reverse(recentLocations); // Reverse the order to get the most recent first
             return gson.fromJson(json, type);
         }
         return new ArrayList<>();
