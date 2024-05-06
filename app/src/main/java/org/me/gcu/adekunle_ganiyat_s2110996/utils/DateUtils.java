@@ -41,12 +41,8 @@ public class DateUtils {
 
     public static String getCurrentTime() {
         long currentTime = System.currentTimeMillis();
-
         Date date = new Date(currentTime);
-
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
-
-        // Format the date and print the string representation
         return df.format(date);
     }
 }

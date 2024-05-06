@@ -95,6 +95,5 @@ public class WeatherViewModel extends AndroidViewModel {
 
     private void handleError(String errorMessage) {
         Log.e("MainActivity", errorMessage);
-        // Handle error scenario
     }
 }

@@ -329,11 +329,10 @@ public class NetworkUtils {
     }
 
     private static String parseSunriseSunset(String value) {
-        // Example value: "05:27 BST"
         String[] parts = value.split(" ");
         if (parts.length == 2) {
             return parts[0]; // Return the time part
         }
-        return value; // Return the original value if the format is not as expected
+        return value;
     }
 }

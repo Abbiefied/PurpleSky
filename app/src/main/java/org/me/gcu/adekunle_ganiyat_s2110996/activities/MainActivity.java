@@ -275,8 +275,9 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.O
     @Override
     public void onForecastClick(Forecast forecast) {
         Intent intent = new Intent(MainActivity.this, DetailedForecastActivity.class);
-      intent.putExtra("forecast", forecast);
-       startActivity(intent);
+        intent.putExtra("forecast", forecast);
+        intent.putExtra("locationName", Location.getDefaultLocationName());
+        startActivity(intent);
     }
 
     //Schedule auto refresh

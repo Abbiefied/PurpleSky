@@ -10,8 +10,6 @@
     <Preference
         android:key="app_description"
         android:title="Description"
-        android:summary="This is a weather app that provides current weather information and forecasts." />
-
-    <!-- Add more preferences for other app information if needed -->
+        android:summary="This is a weather app that provides current weather information and forecasts. It also allows users to compare the weather condition between two countries and customise the app's settings" />
 
 </PreferenceScreen>
